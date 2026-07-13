@@ -1,0 +1,30 @@
+﻿@ITJournal_HostAddress = https://localhost:7234
+
+GET {{ITJournal_HostAddress}}/api/users
+
+###
+
+POST {{ITJournal_HostAddress}}/api/users
+Content-Type: application/json
+
+{
+  "Username" : "Maxim",
+  "Email" : "maxnolol1999@gmail.com"
+}
+
+###
+
+POST {{ITJournal_HostAddress}}/api/users
+Content-Type: application/json
+
+{
+  "Username" : "Maximus",
+  "Email" : "maxloda2013@yandex.ru"
+}
+
+###
+
+@username=Maxim
+GET {{ITJournal_HostAddress}}/api/users/{{username}}
+
+###

@@ -1,0 +1,35 @@
+@ITJournal_HostAddress = https://localhost:7234
+
+GET {{ITJournal_HostAddress}}/api/categories
+
+###
+
+POST {{ITJournal_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "Id" : 1,
+  "Name" : ".Net"
+}
+
+###
+
+POST {{ITJournal_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "Id" : 2,
+  "Name" : "asp.net"
+}
+
+###
+
+POST {{ITJournal_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "Id" : 3,
+  "Name" : "react"
+}
+
+###

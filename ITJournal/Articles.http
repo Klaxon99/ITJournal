@@ -1,0 +1,50 @@
+@ITJournal_HostAddress = https://localhost:7234
+
+GET {{ITJournal_HostAddress}}/api/articles
+
+###
+
+POST {{ITJournal_HostAddress}}/api/articles
+Content-Type: application/json
+{
+  "Title" : "ак",
+  "Content" : "акакака",
+  "AuthorId" : 1,
+  "CategoriesIds" : [1]
+}
+###
+
+POST {{ITJournal_HostAddress}}/api/articles
+Content-Type: application/json
+{
+  "Title" : "df",
+  "Content" : "dfdfdfdfdf",
+  "AuthorId" : 1,
+  "CategoriesIds" : [1,2]
+}
+###
+
+POST {{ITJournal_HostAddress}}/api/articles
+Content-Type: application/json
+{
+  "Title" : "asasa",
+  "Content" : "asasaassasasasa",
+  "AuthorId" : 2,
+  "CategoriesIds" : [3]
+}
+###
+
+POST {{ITJournal_HostAddress}}/api/articles
+Content-Type: application/json
+{
+  "Title" : "jujujuj",
+  "Content" : "jujujujujuj",
+  "AuthorId" : 2,
+  "CategoriesIds" : [1,3]
+}
+###
+
+@username=Maxim
+GET {{ITJournal_HostAddress}}/api/articles/user/{{username}}
+
+###
