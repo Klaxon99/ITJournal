@@ -17,20 +17,20 @@ namespace ITJournal.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers()
         {
             return await _dbContext.Users
-                .Select(user => new UserDTO 
-                { 
+                .Select(user => new UserResponse
+                {
                     Id = user.Id,
-                    Username = user.Username, 
+                    Username = user.Username,
                     Email = user.Email
                 })
                 .ToListAsync();
         }
 
         [HttpGet("{username}")]
-        public async Task<ActionResult<UserDTO>> GetUserByUserName(string username)
+        public async Task<ActionResult<UserResponse>> GetUserByUserName(string username)
         {
             User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Username == username);
 
@@ -39,7 +39,7 @@ namespace ITJournal.Controllers
                 return BadRequest();
             }
 
-            UserDTO userDTO = new UserDTO
+            UserResponse userDTO = new UserResponse
             {
                 Id = user.Id,
                 Username = user.Username,
@@ -50,7 +50,7 @@ namespace ITJournal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser(UserDTO userDTO)
+        public async Task<IActionResult> CreateUser(UserRequest userDTO)
         {
             if (_dbContext.Users.Any(u => u.Email == userDTO.Email))
             {
@@ -60,13 +60,48 @@ namespace ITJournal.Controllers
             User user = new User
             {
                 Username = userDTO.Username,
-                Email = userDTO.Email,
+                Email = userDTO.Email
             };
 
             await _dbContext.AddAsync(user);
             await _dbContext.SaveChangesAsync();
 
             return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
+
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            _dbContext.Remove(user);
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<ActionResult<UserResponse>> UpdateUserData(int id, [FromBody] UserRequest updatableUser)
+        {
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
+
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            user.Email = string.IsNullOrEmpty(updatableUser.Email) ? user.Email : updatableUser.Email;
+            user.Username = string.IsNullOrEmpty(updatableUser.Username) ? user.Username : updatableUser.Username;
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new UserResponse { Id = id, Username = user.Username, Email = user.Email});
         }
     }
 }

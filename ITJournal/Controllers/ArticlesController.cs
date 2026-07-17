@@ -26,7 +26,7 @@ namespace ITJournal.Controllers
                     Content = article.Content, 
                     CreatedAt = article.CreatedAt,
                     AuthorId = article.AuthorId,
-                    Categories = article.Categories.Select(category => new CategoryDTO
+                    Categories = article.Categories.Select(category => new CategoryResponse
                     {
                         Id = category.Id,
                         Name = category.Name,
@@ -46,7 +46,7 @@ namespace ITJournal.Controllers
                     Content = article.Content,
                     CreatedAt = article.CreatedAt,
                     AuthorId = article.AuthorId,
-                    Categories = article.Categories.Select(category => new CategoryDTO
+                    Categories = article.Categories.Select(category => new CategoryResponse
                     {
                         Id = category.Id,
                         Name = category.Name,

@@ -1,6 +1,6 @@
 ﻿namespace ITJournal.DTO
 {
-    public class CommentDTO
+    public class CommentResponse
     {
         public int Id { get; set; }
         public string Text { get; set; } = string.Empty;
@@ -10,5 +10,11 @@
         public int? ParentId { get; set; }
     }
 
-
+    public class CommentCreating
+    {
+        public string Text { get; set; } = string.Empty;
+        public int AuthorId { get; set; } 
+        public int ArticleId { get; set; }
+        public int? ParentId { get; set; }
+    }
 }

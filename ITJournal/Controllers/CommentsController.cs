@@ -17,10 +17,10 @@ namespace ITJournal.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CommentDTO>>> GetAllComents()
+        public async Task<ActionResult<IEnumerable<CommentResponse>>> GetAllComents()
         {
             return await _dbContext.Comments
-                                    .Select(comment => new CommentDTO
+                                    .Select(comment => new CommentResponse
                                     {
                                         Id = comment.Id,
                                         Text = comment.Text,
@@ -33,7 +33,7 @@ namespace ITJournal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateComment(CommentDTO commentDTO)
+        public async Task<IActionResult> CreateComment(CommentCreating commentDTO)
         {
             Comment comment = new Comment
             {

@@ -17,9 +17,10 @@ namespace ITJournal.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAllCategories()
+        public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetAllCategories()
         {
-            return await _dbContext.Categories.Select(cat => new CategoryDTO
+            return await _dbContext.Categories
+                .Select(cat => new CategoryResponse
             {
                 Id = cat.Id,
                 Name = cat.Name,
@@ -27,7 +28,7 @@ namespace ITJournal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCategory(CategoryDTO categoryDTO)
+        public async Task<IActionResult> CreateCategory(CategoryRequest categoryDTO)
         {
             Category category = new Category
             {

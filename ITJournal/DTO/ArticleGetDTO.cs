@@ -6,6 +6,6 @@
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public int AuthorId { get; set; }
-        public List<CategoryDTO> Categories { get; set; } = null;
+        public List<CategoryResponse> Categories { get; set; } = null;
     }
 }
