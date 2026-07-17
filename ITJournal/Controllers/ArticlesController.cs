@@ -17,11 +17,12 @@ namespace ITJournal.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ArticleGetDTO>>> GetArticles()
+        public async Task<ActionResult<IEnumerable<ArticleResponse>>> GetArticles()
         {
             return await _dbContext.Articles
-                .Select(article => new ArticleGetDTO 
+                .Select(article => new ArticleResponse 
                 { 
+                    Id = article.Id,
                     Title = article.Title, 
                     Content = article.Content, 
                     CreatedAt = article.CreatedAt,
@@ -35,13 +36,44 @@ namespace ITJournal.Controllers
                 .ToListAsync(); 
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ArticleResponse>> GetArticleById(int id)
+        {
+            ArticleResponse? articleResponse = await _dbContext.Articles
+                .AsNoTracking()
+                .Where(art => art.Id == id)
+                .Select(art => new ArticleResponse
+                {
+                    Id = art.Id,
+                    Title = art.Title,
+                    Content = art.Content,
+                    CreatedAt = art.CreatedAt,
+                    AuthorId = art.AuthorId,
+                    Categories = art.Categories
+                    .Select(cat => new CategoryResponse
+                    {
+                        Id = cat.Id,
+                        Name = cat.Name
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (articleResponse == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(articleResponse);
+        }
+
         [HttpGet("user/{username}")]
-        public async Task<ActionResult<IEnumerable<ArticleGetDTO>>> GetArticlesByUsername(string username)
+        public async Task<ActionResult<IEnumerable<ArticleResponse>>> GetArticlesByUsername(string username)
         {
             return await _dbContext.Articles
                 .Where(article => article.Author.Username == username)
-                .Select(article => new ArticleGetDTO
+                .Select(article => new ArticleResponse
                 {
+                    Id = article.Id,
                     Title = article.Title,
                     Content = article.Content,
                     CreatedAt = article.CreatedAt,
@@ -56,7 +88,7 @@ namespace ITJournal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateNewArticle(ArticleCreateDTO articleDTO)
+        public async Task<IActionResult> CreateArticle(ArticleRequest articleDTO)
         {
             List<Category> categories = await _dbContext.Categories.Where(category => articleDTO.CategoriesIds.Contains(category.Id)).ToListAsync();
 
@@ -72,7 +104,21 @@ namespace ITJournal.Controllers
             await _dbContext.Articles.AddAsync(article);
             await _dbContext.SaveChangesAsync();
 
-            return Ok();
+            ArticleResponse articleGetDTO = new ArticleResponse
+            {
+                Id = article.Id,
+                Title = article.Title,
+                Content = article.Content,
+                CreatedAt = article.CreatedAt,
+                AuthorId = article.AuthorId,
+                Categories = article.Categories.Select(category => new CategoryResponse
+                {
+                    Id = category.Id,
+                    Name = category.Name,
+                }).ToList()
+            };
+
+            return CreatedAtAction(nameof(GetArticleById), new { article.Id }, articleGetDTO);
         }
     }
 }

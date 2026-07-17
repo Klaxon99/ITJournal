@@ -16,6 +16,23 @@ namespace ITJournal.Controllers
             _dbContext = dbContext;
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CategoryResponse>> GetCategoryById(int id)
+        {
+            CategoryResponse? categoryResponse = await _dbContext.Categories
+                .AsNoTracking()
+                .Where(cat => cat.Id == id)
+                .Select(cat => new CategoryResponse { Id = cat.Id, Name = cat.Name })
+                .FirstOrDefaultAsync();
+
+            if (categoryResponse == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(categoryResponse);
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetAllCategories()
         {
@@ -28,7 +45,7 @@ namespace ITJournal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCategory(CategoryRequest categoryDTO)
+        public async Task<ActionResult<CategoryResponse>> CreateCategory(CategoryRequest categoryDTO)
         {
             Category category = new Category
             {
@@ -38,7 +55,7 @@ namespace ITJournal.Controllers
             await _dbContext.AddAsync(category);
             await _dbContext.SaveChangesAsync();
 
-            return Ok();
+            return CreatedAtAction(nameof(GetCategoryById), new {category.Id}, new CategoryResponse { Id = category.Id, Name = category.Name});
         }
     }
 }

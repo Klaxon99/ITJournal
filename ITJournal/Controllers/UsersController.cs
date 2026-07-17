@@ -17,6 +17,28 @@ namespace ITJournal.Controllers
         }
 
         [HttpGet]
+        public async Task<ActionResult<UserResponse>> GetUserById(int id)
+        {
+            UserResponse? response = await _dbContext.Users
+                .AsNoTracking()
+                .Where(user => user.Id == id)
+                .Select(user => new UserResponse
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email
+                })
+                .FirstOrDefaultAsync();
+
+            if (response == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(response);
+        }
+
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers()
         {
             return await _dbContext.Users
@@ -66,7 +88,12 @@ namespace ITJournal.Controllers
             await _dbContext.AddAsync(user);
             await _dbContext.SaveChangesAsync();
 
-            return Ok();
+            return CreatedAtAction(nameof(GetUserById), new { user.Id }, new UserResponse
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email
+            });
         }
 
         [HttpDelete("{id}")]
