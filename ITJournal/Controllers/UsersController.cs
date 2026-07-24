@@ -17,31 +17,31 @@ namespace ITJournal.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<UserResponse>> GetUserById(int id)
+        public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers([FromQuery] UsersFilter usersFilter)
         {
-            UserResponse? response = await _dbContext.Users
-                .AsNoTracking()
-                .Where(user => user.Id == id)
-                .Select(user => new UserResponse
-                {
-                    Id = user.Id,
-                    Username = user.Username,
-                    Email = user.Email
-                })
-                .FirstOrDefaultAsync();
+            IQueryable<User> query = _dbContext.Users.AsNoTracking();
 
-            if (response == null)
+            if (usersFilter.Id != null)
             {
-                return NotFound();
+                query = query.Where(user => user.Id == usersFilter.Id);
             }
 
-            return Ok(response);
-        }
+            if (usersFilter.Username != null)
+            {
+                query = query.Where(user => user.Username == usersFilter.Username);
+            }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers()
-        {
-            return await _dbContext.Users
+            if (usersFilter.limit != null)
+            {
+                query = query.Take((int)usersFilter.limit);
+            }
+
+            if (usersFilter.skip != null)
+            {
+                query = query.Skip((int)usersFilter.skip);
+            }
+
+            return await query
                 .Select(user => new UserResponse
                 {
                     Id = user.Id,
@@ -49,26 +49,6 @@ namespace ITJournal.Controllers
                     Email = user.Email
                 })
                 .ToListAsync();
-        }
-
-        [HttpGet("{username}")]
-        public async Task<ActionResult<UserResponse>> GetUserByUserName(string username)
-        {
-            User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Username == username);
-
-            if (user == null)
-            {
-                return BadRequest();
-            }
-
-            UserResponse userDTO = new UserResponse
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-            };
-
-            return userDTO;
         }
 
         [HttpPost]
@@ -88,11 +68,11 @@ namespace ITJournal.Controllers
             await _dbContext.AddAsync(user);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUserById), new { user.Id }, new UserResponse
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email
+            return CreatedAtAction(nameof(GetUsers), new UsersFilter { Id = user.Id }, new UserResponse 
+            { 
+                Email = user.Email, 
+                Id = user.Id, 
+                Username = user.Username
             });
         }
 
@@ -103,24 +83,24 @@ namespace ITJournal.Controllers
 
             if (user == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             _dbContext.Remove(user);
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok();
+            return NoContent();
         }
 
         [HttpPatch("{id}")]
-        public async Task<ActionResult<UserResponse>> UpdateUserData(int id, [FromBody] UserRequest updatableUser)
+        public async Task<ActionResult<UserResponse>> UpdateData(int id, [FromBody] UserRequest updatableUser)
         {
             User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
 
             if (user == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             user.Email = string.IsNullOrEmpty(updatableUser.Email) ? user.Email : updatableUser.Email;
@@ -128,7 +108,12 @@ namespace ITJournal.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new UserResponse { Id = id, Username = user.Username, Email = user.Email});
+            return Ok(new UserResponse
+            {
+                Id= user.Id,
+                Email = user.Email,
+                Username = user.Username,
+            });
         }
     }
 }

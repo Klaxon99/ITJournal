@@ -1,12 +1,12 @@
 ﻿namespace ITJournal.DTO
 {
-    public class CommentResponse
+    public record CommentResponse
     {
-        public int Id { get; set; }
-        public string Text { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-        public int AuthorId { get; set; }
-        public int ArticleId { get; set; }
-        public int? ParentId { get; set; }
+        public int Id { get; init; }
+        public string Text { get; init; } = string.Empty;
+        public DateTime CreatedAt { get; init; }
+        public int AuthorId { get; init; }
+        public int ArticleId { get; init; }
+        public int? ParentId { get; init; }
     }
 }

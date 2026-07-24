@@ -1,8 +1,8 @@
 ﻿namespace ITJournal.DTO
 {
-    public class CategoryResponse
+    public record CategoryResponse
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        public int Id { get; init; }
+        public string Name { get; init; } = string.Empty;
     }
 }

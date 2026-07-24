@@ -1,10 +1,10 @@
 ﻿namespace ITJournal.DTO
 {
-    public class ArticleRequest
+    public record ArticleRequest
     {
-        public string Title { get; set; } = string.Empty;
-        public string Content { get; set; } = string.Empty;
-        public int AuthorId { get; set; }
-        public List<int> CategoriesIds { get; set; } = null;
+        public string Title { get; init; } = string.Empty;
+        public string Content { get; init; } = string.Empty;
+        public int AuthorId { get; init; }
+        public List<int> CategoriesIds { get; init; } = new();
     }
 }

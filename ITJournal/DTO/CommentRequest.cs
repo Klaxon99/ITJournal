@@ -1,10 +1,10 @@
 ﻿namespace ITJournal.DTO
 {
-    public class CommentRequest
+    public record CommentRequest
     {
-        public string Text { get; set; } = string.Empty;
-        public int AuthorId { get; set; } 
-        public int ArticleId { get; set; }
-        public int? ParentId { get; set; }
+        public string Text { get; init; } = string.Empty;
+        public int AuthorId { get; init; }
+        public int ArticleId { get; init; }
+        public int? ParentId { get; init; }
     }
 }
