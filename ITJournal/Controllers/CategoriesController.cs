@@ -16,32 +16,27 @@ namespace ITJournal.Controllers
             _dbContext = dbContext;
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<CategoryResponse>> GetCategoryById(int id)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetCategories([FromQuery]int? id = null, string? name = null)
         {
-            CategoryResponse? categoryResponse = await _dbContext.Categories
-                .AsNoTracking()
-                .Where(cat => cat.Id == id)
-                .Select(cat => new CategoryResponse { Id = cat.Id, Name = cat.Name })
-                .FirstOrDefaultAsync();
+            IQueryable<Category> query = _dbContext.Categories;
 
-            if (categoryResponse == null)
+            if (id != null)
             {
-                return NotFound();
+                query = query.Where(category => category.Id == id);
             }
 
-            return Ok(categoryResponse);
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetAllCategories()
-        {
-            return await _dbContext.Categories
-                .Select(cat => new CategoryResponse
+            if (name != null)
             {
-                Id = cat.Id,
-                Name = cat.Name,
-            }).ToListAsync();
+                query = query.Where(category => category.Name == name);
+            }
+
+            return await query
+                .Select(cat => new CategoryResponse
+                {
+                    Id = cat.Id,
+                    Name = cat.Name,
+                }).ToListAsync();
         }
 
         [HttpPost]
@@ -55,7 +50,41 @@ namespace ITJournal.Controllers
             await _dbContext.AddAsync(category);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCategoryById), new {category.Id}, new CategoryResponse { Id = category.Id, Name = category.Name});
+            return CreatedAtAction(nameof(GetCategories), new {category.Id}, new CategoryResponse { Id = category.Id, Name = category.Name});
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<ActionResult<CategoryResponse>> UpdateCategory(int id, [FromBody] CategoryRequest request)
+        {
+            Category? category = await _dbContext.Categories.FirstOrDefaultAsync(cat => cat.Id == id);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            category.Name = request.Name;
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new CategoryResponse { Id = category.Id, Name = category.Name});
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            Category? category = await _dbContext.Categories.FirstOrDefaultAsync(cat => cat.Id == id);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            _dbContext.Remove(category);
+
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

@@ -9,7 +9,7 @@
         public int ArticleId { get; set; }
         public Article Article { get; set; } = null;
 
-        public int? ParentId { get; set; }
+        public int? ParentId { get; set; } = null;
         public Comment? ParentComment { get; set; } = null;
 
         public int AuthorId { get; set; }

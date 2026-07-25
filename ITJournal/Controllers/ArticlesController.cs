@@ -17,9 +17,33 @@ namespace ITJournal.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ArticleResponse>>> GetArticles()
+        public async Task<ActionResult<IEnumerable<ArticleResponse>>> GetArticles([FromQuery] ArticlesFilterRequest filter)
         {
-            return await _dbContext.Articles
+            IQueryable<Article> query = _dbContext.Articles;
+
+            if (filter.Id != null)
+            {
+                query = query.Where(article => article.Id == filter.Id);
+            }
+
+            if (string.IsNullOrEmpty(filter.Title) == false)
+            {
+                query = query.Where(article => article.Title == filter.Title);
+            }
+
+            if (filter.AuthorId != null)
+            {
+                query = query.Where(article => article.AuthorId == filter.AuthorId);
+            }
+
+            if(filter.CategoriesIds.Count > 0)
+            {
+                query = query.Where(article => article.Categories
+                    .Where(category => filter.CategoriesIds.Contains(category.Id))
+                    .Count() == filter.CategoriesIds.Count);
+            }
+
+            return await query
                 .Select(article => new ArticleResponse
                 {
                     Id = article.Id,
@@ -34,66 +58,6 @@ namespace ITJournal.Controllers
                     }).ToList()
                 })
                 .ToListAsync(); 
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ArticleResponse>> GetArticleById(int id)
-        {
-            ArticleResponse? articleResponse = await _dbContext.Articles
-                .AsNoTracking()
-                .Where(art => art.Id == id)
-                .Select(art => new ArticleResponse
-                {
-                    Id = art.Id,
-                    Title = art.Title,
-                    Content = art.Content,
-                    CreatedAt = art.CreatedAt,
-                    AuthorId = art.AuthorId,
-                    Categories = art.Categories
-                    .Select(cat => new CategoryResponse
-                    {
-                        Id = cat.Id,
-                        Name = cat.Name
-                    }).ToList()
-                })
-                .FirstOrDefaultAsync();
-
-            if (articleResponse == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(articleResponse);
-        }
-
-        [HttpGet("user/{username}")]
-        public async Task<ActionResult<IEnumerable<ArticleResponse>>> GetArticlesByUsername(string username)
-        {
-            User? user =await _dbContext.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(author => author.Username == username);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return await _dbContext.Articles
-                .Where(article => article.Author.Username == username)
-                .Select(article => new ArticleResponse
-                {
-                    Id = article.Id,
-                    Title = article.Title,
-                    Content = article.Content,
-                    CreatedAt = article.CreatedAt,
-                    AuthorId = article.AuthorId,
-                    Categories = article.Categories.Select(category => new CategoryResponse
-                    {
-                        Id = category.Id,
-                        Name = category.Name,
-                    }).ToList()
-                })
-                .ToListAsync();
         }
 
         [HttpPost]
@@ -129,7 +93,7 @@ namespace ITJournal.Controllers
                 }).ToList()
             };
 
-            return CreatedAtAction(nameof(GetArticleById), new { article.Id }, articleGetDTO);
+            return CreatedAtAction(nameof(GetArticles), new { article.Id }, articleGetDTO);
         }
 
         [HttpPatch("{id}")]
@@ -174,6 +138,23 @@ namespace ITJournal.Controllers
                 .Select(cat => new CategoryResponse { Id = cat.Id, Name = cat.Name})
                 .ToList()
             });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteArticle(int id)
+        {
+            Article? article = await _dbContext.Articles.FirstOrDefaultAsync(article => article.Id == id);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            _dbContext.Articles.Remove(article);
+
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

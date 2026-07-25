@@ -16,35 +16,32 @@ namespace ITJournal.Controllers
             _dbContext = dbContext;
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<CommentResponse>> GetCommentById(int id)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CommentResponse>>> GetComments([FromQuery] CommentsFilterRequest filter)
         {
-            CommentResponse? comment = await _dbContext.Comments
-                .AsNoTracking()
-                .Where(comment => comment.Id == id)
-                .Select(comment => new CommentResponse
-                {
-                    Id = comment.Id,
-                    Text = comment.Text,
-                    CreatedAt = comment.CreatedAt,
-                    AuthorId = comment.AuthorId,
-                    ArticleId = comment.ArticleId,
-                    ParentId = comment.ParentId
-                })
-                .FirstOrDefaultAsync();
+            IQueryable<Comment> query = _dbContext.Comments;
 
-            if (comment == null)
+            if (filter.Id != null)
             {
-                return NotFound();
+                query = query.Where(comment => comment.Id == filter.Id);
             }
 
-            return Ok(comment);
-        }
+            if (filter.AticleId != null)
+            {
+                query = query.Where(comment => comment.ArticleId == filter.AticleId);
+            }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CommentResponse>>> GetAllComents()
-        {
-            return await _dbContext.Comments
+            if (filter.ParentId != null)
+            {
+                query = query.Where(comment => comment.ParentId == filter.ParentId);
+            }
+
+            if (filter.AuthorId != null)
+            {
+                query = query.Where(comment => comment.AuthorId == filter.AuthorId);
+            }
+
+            return await query
                 .Select(comment => new CommentResponse
                 {
                     Id = comment.Id,
@@ -72,15 +69,57 @@ namespace ITJournal.Controllers
             await _dbContext.Comments.AddAsync(comment);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCommentById), new {comment.Id}, new CommentResponse
+            return CreatedAtAction(nameof(GetComments), new { comment.Id }, new CommentResponse
             {
                 Id = comment.Id,
                 Text = comment.Text,
-                CreatedAt= comment.CreatedAt,
+                CreatedAt = comment.CreatedAt,
                 AuthorId = comment.AuthorId,
                 ArticleId = comment.ArticleId,
                 ParentId = comment.ParentId,
             });
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<ActionResult<CommentResponse>> UpdateComment(int id, [FromBody] CommentUpdateRequest request)
+        {
+            Comment? comment = await _dbContext.Comments.FirstOrDefaultAsync(comment => comment.Id == id);
+
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
+            comment.Text = request.Text;
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new CommentResponse
+            {
+                Id = comment.Id,
+                Text = comment.Text,
+                CreatedAt = DateTime.Now,
+                AuthorId = comment.AuthorId,
+                ArticleId = comment.ArticleId,
+                ParentId = comment.ParentId
+            });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteComment(int id)
+        {
+            Comment? comment = await _dbContext.Comments.FirstOrDefaultAsync(comment => comment.Id == id);
+
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
+            _dbContext.Comments.Remove(comment);
+
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
