@@ -1,5 +1,6 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,27 +22,13 @@ namespace ITJournal.Controllers
         {
             IQueryable<Article> query = _dbContext.Articles;
 
-            if (filter.Id != null)
-            {
-                query = query.Where(article => article.Id == filter.Id);
-            }
-
-            if (string.IsNullOrEmpty(filter.Title) == false)
-            {
-                query = query.Where(article => article.Title == filter.Title);
-            }
-
-            if (filter.AuthorId != null)
-            {
-                query = query.Where(article => article.AuthorId == filter.AuthorId);
-            }
-
-            if(filter.CategoriesIds.Count > 0)
-            {
-                query = query.Where(article => article.Categories
+            query = query
+                .WhereIf(filter.Id != null, article => article.Id == filter.Id)
+                .WhereIf(string.IsNullOrEmpty(filter.Title) == false, article => article.Title == filter.Title)
+                .WhereIf(filter.AuthorId != null, article => article.AuthorId == filter.AuthorId)
+                .WhereIf(filter.CategoriesIds.Count > 0, article => article.Categories
                     .Where(category => filter.CategoriesIds.Contains(category.Id))
                     .Count() == filter.CategoriesIds.Count);
-            }
 
             return await query
                 .Select(article => new ArticleResponse

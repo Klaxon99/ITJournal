@@ -1,5 +1,6 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,15 +22,9 @@ namespace ITJournal.Controllers
         {
             IQueryable<Category> query = _dbContext.Categories;
 
-            if (id != null)
-            {
-                query = query.Where(category => category.Id == id);
-            }
-
-            if (name != null)
-            {
-                query = query.Where(category => category.Name == name);
-            }
+            query = query
+                .WhereIf(id != null, category => category.Id == id)
+                .WhereIf(name != null, category => category.Name == name);
 
             return await query
                 .Select(cat => new CategoryResponse

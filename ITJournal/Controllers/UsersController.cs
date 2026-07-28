@@ -1,5 +1,6 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,25 +22,11 @@ namespace ITJournal.Controllers
         {
             IQueryable<User> query = _dbContext.Users.AsNoTracking();
 
-            if (usersFilter.Id != null)
-            {
-                query = query.Where(user => user.Id == usersFilter.Id);
-            }
-
-            if (usersFilter.Username != null)
-            {
-                query = query.Where(user => user.Username == usersFilter.Username);
-            }
-
-            if (usersFilter.limit != null)
-            {
-                query = query.Take((int)usersFilter.limit);
-            }
-
-            if (usersFilter.skip != null)
-            {
-                query = query.Skip((int)usersFilter.skip);
-            }
+            query = query
+                .WhereIf(usersFilter.Id != null, user => user.Id == usersFilter.Id)
+                .WhereIf(usersFilter.Username != null, user => user.Username == usersFilter.Username)
+                .WhereIf(usersFilter.Email != null, user => user.Email == usersFilter.Email)
+                .Paginate(skip : usersFilter.skip, take : usersFilter.limit);
 
             return await query
                 .Select(user => new UserResponse

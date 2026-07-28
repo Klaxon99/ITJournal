@@ -1,5 +1,6 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,25 +22,11 @@ namespace ITJournal.Controllers
         {
             IQueryable<Comment> query = _dbContext.Comments;
 
-            if (filter.Id != null)
-            {
-                query = query.Where(comment => comment.Id == filter.Id);
-            }
-
-            if (filter.AticleId != null)
-            {
-                query = query.Where(comment => comment.ArticleId == filter.AticleId);
-            }
-
-            if (filter.ParentId != null)
-            {
-                query = query.Where(comment => comment.ParentId == filter.ParentId);
-            }
-
-            if (filter.AuthorId != null)
-            {
-                query = query.Where(comment => comment.AuthorId == filter.AuthorId);
-            }
+            query = query
+                .WhereIf(filter.Id != null, comment => comment.Id == filter.Id)
+                .WhereIf(filter.AticleId != null, comment => comment.ArticleId == filter.AticleId)
+                .WhereIf(filter.ParentId != null, comment => comment.ParentId == filter.ParentId)
+                .WhereIf(filter.AuthorId != null, comment => comment.AuthorId == filter.AuthorId);
 
             return await query
                 .Select(comment => new CommentResponse
