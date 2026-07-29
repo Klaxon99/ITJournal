@@ -34,6 +34,7 @@ namespace ITJournal.Controllers
                     Id = comment.Id,
                     Text = comment.Text,
                     CreatedAt = DateTime.Now,
+                    UpdatedAt = comment.UpdatedAt,
                     AuthorId = comment.AuthorId,
                     ArticleId = comment.ArticleId,
                     ParentId = comment.ParentId,
@@ -77,6 +78,7 @@ namespace ITJournal.Controllers
                 return NotFound();
             }
 
+            comment.UpdatedAt = DateTime.Now;
             comment.Text = request.Text;
 
             await _dbContext.SaveChangesAsync();
@@ -86,6 +88,7 @@ namespace ITJournal.Controllers
                 Id = comment.Id,
                 Text = comment.Text,
                 CreatedAt = DateTime.Now,
+                UpdatedAt = comment.UpdatedAt,
                 AuthorId = comment.AuthorId,
                 ArticleId = comment.ArticleId,
                 ParentId = comment.ParentId

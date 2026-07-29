@@ -28,7 +28,8 @@ namespace ITJournal.Controllers
                 .WhereIf(filter.AuthorId != null, article => article.AuthorId == filter.AuthorId)
                 .WhereIf(filter.CategoriesIds.Count > 0, article => article.Categories
                     .Where(category => filter.CategoriesIds.Contains(category.Id))
-                    .Count() == filter.CategoriesIds.Count);
+                    .Count() == filter.CategoriesIds.Count)
+                .Include(article => article.Author);
 
             return await query
                 .Select(article => new ArticleResponse
@@ -37,7 +38,12 @@ namespace ITJournal.Controllers
                     Title = article.Title,
                     Content = article.Content,
                     CreatedAt = article.CreatedAt,
-                    AuthorId = article.AuthorId,
+                    UpdatedAt = article.UpdatedAt,
+                    Author = new UserResponse 
+                    { Id = article.Author.Id, 
+                        Email = article.Author.Email, 
+                        Username = article.Author.Username
+                    },
                     Categories = article.Categories.Select(category => new CategoryResponse
                     {
                         Id = category.Id,
@@ -52,6 +58,12 @@ namespace ITJournal.Controllers
         {
             List<Category> categories = await _dbContext.Categories
                 .Where(category => articleDTO.CategoriesIds.Contains(category.Id)).ToListAsync();
+            User? author = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == articleDTO.AuthorId);
+
+            if (author == null)
+            {
+                return NotFound();
+            }
 
             Article article = new Article
             {
@@ -71,7 +83,7 @@ namespace ITJournal.Controllers
                 Title = article.Title,
                 Content = article.Content,
                 CreatedAt = article.CreatedAt,
-                AuthorId = article.AuthorId,
+                Author = new UserResponse { Email = author.Email, Id= author.Id, Username = author.Username},
                 Categories = article.Categories
                 .Select(category => new CategoryResponse
                 {
@@ -88,6 +100,7 @@ namespace ITJournal.Controllers
         {
             Article? article = await _dbContext.Articles
                 .Include(art => art.Categories)
+                .Include(art => art.Author)
                 .FirstOrDefaultAsync(article => article.Id == id);
 
             if (article == null)
@@ -97,6 +110,7 @@ namespace ITJournal.Controllers
 
             article.Title = string.IsNullOrEmpty(request.Title) ? article.Title : request.Title;
             article.Content = string.IsNullOrEmpty(request.Content) ? article.Content : request.Content;
+            article.UpdatedAt = DateTime.Now;
 
             if (request.CategoriesIds.Count > 0)
             {
@@ -119,8 +133,9 @@ namespace ITJournal.Controllers
                 Id = article.Id,
                 Title = article.Title,
                 Content = article.Content,
-                AuthorId = article.AuthorId,
+                Author = new UserResponse { Username = article.Author.Username, Id = article.Author.Id, Email = article.Author.Email},
                 CreatedAt = article.CreatedAt,
+                UpdatedAt = article.UpdatedAt,
                 Categories = article.Categories
                 .Select(cat => new CategoryResponse { Id = cat.Id, Name = cat.Name})
                 .ToList()
