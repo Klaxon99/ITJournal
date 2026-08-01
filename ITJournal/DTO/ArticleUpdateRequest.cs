@@ -1,6 +1,6 @@
 ﻿namespace ITJournal.DTO
 {
-    public record ArticleUpdateRequest
+    public record ArticleUpdateRequest : IArticleData
     {
         public string? Title { get; init; } = string.Empty;
         public string? Content { get; init; } = string.Empty;
