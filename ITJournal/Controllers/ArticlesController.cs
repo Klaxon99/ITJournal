@@ -1,6 +1,7 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
+using ITJournal.Services.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,12 @@ namespace ITJournal.Controllers
     public class ArticlesController : ControllerBase
     {
         private readonly ITJournalDbContext _dbContext;
+        private readonly ArticleValidators _validator;
 
-        public ArticlesController(ITJournalDbContext dbContext)
+        public ArticlesController(ITJournalDbContext dbContext, ArticleValidators articleValidator)
         {
             _dbContext = dbContext;
+            _validator = articleValidator;
         }
 
         [HttpGet]
@@ -56,6 +59,13 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateArticle(ArticleRequest articleDTO)
         {
+            bool isValid = await _validator.Validate(articleDTO);
+
+            if (!isValid)
+            {
+                return BadRequest();
+            }
+
             List<Category> categories = await _dbContext.Categories
                 .Where(category => articleDTO.CategoriesIds.Contains(category.Id)).ToListAsync();
             User? author = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == articleDTO.AuthorId);
