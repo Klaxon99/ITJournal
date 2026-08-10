@@ -1,6 +1,7 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
+using ITJournal.Services.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,12 @@ namespace ITJournal.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ITJournalDbContext _dbContext;
+        private readonly ArticleValidators _validator;
 
-        public CategoriesController(ITJournalDbContext dbContext)
+        public CategoriesController(ITJournalDbContext dbContext, ArticleValidators validator)
         {
             _dbContext = dbContext;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -37,6 +40,13 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<ActionResult<CategoryResponse>> CreateCategory(CategoryRequest categoryDTO)
         {
+            bool isValid = await _validator.ValidateAsync(categoryDTO);
+
+            if (isValid == false)
+            {
+                return BadRequest();
+            }
+
             Category category = new Category
             {
                 Name = categoryDTO.Name

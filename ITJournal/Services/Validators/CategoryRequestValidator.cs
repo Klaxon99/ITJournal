@@ -10,8 +10,10 @@ namespace ITJournal.Services.Validators
         public CategoryRequestValidator(ITJournalDbContext dbContext)
         {
             RuleFor(cat => cat.Name)
-                .NotEmpty()
-                .MustAsync(async (category, token) => await dbContext.Categories.AnyAsync(cat => cat.Name == category, token));
+                .NotEmpty() 
+                .MaximumLength(15)
+                .MustAsync(async (category, token) => await dbContext.Categories
+                    .AnyAsync(cat => cat.Name == category, token) == false);
         }
     }
 }

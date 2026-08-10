@@ -1,6 +1,7 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
+using ITJournal.Services.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,12 @@ namespace ITJournal.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ITJournalDbContext _dbContext;
+        private readonly ArticleValidators _validator;
 
-        public UsersController(ITJournalDbContext dbContext)
+        public UsersController(ITJournalDbContext dbContext, ArticleValidators validator)
         {
             _dbContext = dbContext;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -41,7 +44,9 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser(UserRequest userDTO)
         {
-            if (_dbContext.Users.Any(u => u.Email == userDTO.Email))
+            bool isValid = await _validator.ValidateAsync(userDTO);
+
+            if (isValid == false)
             {
                 return BadRequest();
             }

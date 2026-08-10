@@ -59,7 +59,7 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateArticle(ArticleRequest articleDTO)
         {
-            bool isValid = await _validator.Validate(articleDTO);
+            bool isValid = await _validator.ValidateAsync(articleDTO);
 
             if (!isValid)
             {

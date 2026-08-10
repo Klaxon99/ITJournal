@@ -29,7 +29,7 @@ namespace ITJournal.Services.Validators
             }
         }
 
-        public async Task<bool> Validate<T>(T dto) where T : IArticleData
+        public async Task<bool> ValidateAsync<T>(T dto)
         {
             if (dto == null)
             {
@@ -47,7 +47,6 @@ namespace ITJournal.Services.Validators
                 var validatorContext = new ValidationContext<object>(dto);
                 return (await validator.ValidateAsync(validatorContext)).IsValid;
             }
-                
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
+using ITJournal.Services.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,12 @@ namespace ITJournal.Controllers
     public class CommentsController : ControllerBase
     {
         private readonly ITJournalDbContext _dbContext;
+        private readonly ArticleValidators _validator;
 
-        public CommentsController(ITJournalDbContext dbContext)
+        public CommentsController(ITJournalDbContext dbContext, ArticleValidators validator)
         {
             _dbContext = dbContext;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -45,6 +48,13 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateComment(CommentRequest commentDTO)
         {
+            bool isValid = await _validator.ValidateAsync(commentDTO);
+
+            if (!isValid)
+            {
+                return BadRequest();
+            }
+
             Comment comment = new Comment
             {
                 Text = commentDTO.Text,
