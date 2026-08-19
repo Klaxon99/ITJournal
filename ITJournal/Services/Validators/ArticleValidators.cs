@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using ITJournal.DTO;
 
 namespace ITJournal.Services.Validators
 {
