@@ -10,23 +10,26 @@ namespace ITJournal.Services.Validators
         public CommentRequestValidator(ITJournalDbContext dbContext) 
         {
             RuleFor(comment => comment.Text)
-                .NotEmpty()
-                .MinimumLength(1)
-                .MaximumLength(255);
+                .NotEmptyWithMessage()
+                .MinLengthWithMessage(1)
+                .MaxLengthWithMessage(255);
             RuleFor(comment => comment.AuthorId)
-                .GreaterThan(0)
-                .MustAsync(async (id, token) => await dbContext.Users.AnyAsync(author => author.Id == id, token));
+                .GreaterThanWithMessage()
+                .MustAsync(async (id, token) => await dbContext.Users.AnyAsync(author => author.Id == id, token))
+                .WithMessage("Author not found.");
             RuleFor(comment => comment.ArticleId)
-                .GreaterThan(0)
-                .MustAsync(async (id, token) => await dbContext.Articles.AnyAsync(article => article.Id == id, token));
+                .GreaterThanWithMessage()
+                .MustAsync(async (id, token) => await dbContext.Articles.AnyAsync(article => article.Id == id, token))
+                .WithMessage("Post does not exist.");
             RuleFor(comment => comment.ParentId)
-                .GreaterThan(0)
+                .GreaterThanWithMessage()
                 .MustAsync(async (request, parentId, token) =>
                 {
                     return await dbContext.Comments
                         .AnyAsync(comment => comment.Id == parentId && comment.ArticleId == request.ArticleId, token);
                 })
-                .When(request => request.ParentId.HasValue);
+                .When(request => request.ParentId.HasValue)
+                .WithMessage("Incorrect author.");
         }
     }
 }

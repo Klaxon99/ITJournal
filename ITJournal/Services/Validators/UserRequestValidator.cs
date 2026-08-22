@@ -1,8 +1,6 @@
 ﻿using FluentValidation;
-using FluentValidation.Validators;
 using ITJournal.DTO;
 using ITJournal.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Services.Validators
 {
@@ -11,17 +9,9 @@ namespace ITJournal.Services.Validators
         public UserRequestValidator(ITJournalDbContext dbContext)
         {
             RuleFor(user => user.Email)
-                .NotEmpty()
-                .EmailAddress()
-                /*.Matches(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")*/
-                .MustAsync(async (email, token) => await dbContext.Users
-                    .AnyAsync(user => user.Email == email, token) == false);
+                .EmailAdressWithMessage(dbContext);
             RuleFor(user => user.Username)
-                .NotEmpty()
-                .MinimumLength(5)
-                .MaximumLength(25)
-                .MustAsync(async (username, token) => await dbContext.Users
-                    .AnyAsync(user => user.Username == username, token) == false);
+                .UsernameWithMessage(dbContext);
         }
     }
 }

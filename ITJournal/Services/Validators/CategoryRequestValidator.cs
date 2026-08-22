@@ -10,10 +10,11 @@ namespace ITJournal.Services.Validators
         public CategoryRequestValidator(ITJournalDbContext dbContext)
         {
             RuleFor(cat => cat.Name)
-                .NotEmpty() 
-                .MaximumLength(15)
+                .NotEmptyWithMessage() 
+                .MaxLengthWithMessage(15)
                 .MustAsync(async (category, token) => await dbContext.Categories
-                    .AnyAsync(cat => cat.Name == category, token) == false);
+                    .AnyAsync(cat => cat.Name == category, token) == false)
+                .WithMessage("This category already exists.");
         }
     }
 }

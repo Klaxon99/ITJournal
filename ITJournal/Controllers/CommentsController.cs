@@ -1,4 +1,5 @@
-﻿using ITJournal.DTO;
+﻿using FluentValidation.Results;
+using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.Validators;
@@ -48,11 +49,11 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateComment(CommentRequest commentDTO)
         {
-            bool isValid = await _validator.ValidateAsync(commentDTO);
+            ValidationResult validationResult = await _validator.ValidateAsync(commentDTO);
 
-            if (!isValid)
+            if (validationResult.IsValid == false)
             {
-                return BadRequest();
+                return BadRequest(validationResult.ToDictionary());
             }
 
             Comment comment = new Comment

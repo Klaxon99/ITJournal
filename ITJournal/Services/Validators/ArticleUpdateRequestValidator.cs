@@ -14,15 +14,23 @@ namespace ITJournal.Services.Validators
             _dbContext = iTJournalDbContext;
 
             RuleFor(request => request.Title)
-                .NotEmpty()
-                .MinimumLength(5)
-                .MaximumLength(10)
-                .MustAsync(async (title, token) => await _dbContext.Articles.AnyAsync(token) == false);
-            RuleFor(request => request.Content).NotEmpty().MinimumLength(50);
+                .NotEmptyWithMessage()
+                .MinLengthWithMessage(5)
+                .MaxLengthWithMessage(10)
+                .MustAsync(async (title, token) => await _dbContext.Articles.AnyAsync(article => article.Title == title, token) == false)
+                .WithMessage("This title already exists.")
+                .When(request => string.IsNullOrEmpty(request.Title) == false);
+            RuleFor(request => request.Content)
+                .NotEmptyWithMessage()
+                .MinLengthWithMessage(50)
+                .When(request => string.IsNullOrEmpty(request.Content) == false);
             RuleFor(requset => requset.CategoriesIds)
-                .NotEmpty()
+                .NotEmptyWithMessage()
                 .Must(ids => ids.Distinct().ToList().Count == ids.Count)
-                .MustAsync(async (ids, token) => await _dbContext.Categories.Where(cat => ids.Contains(cat.Id)).CountAsync(token) == ids.Count);
+                .WithMessage("Should be no duplicates.")
+                .MustAsync(async (ids, token) => await _dbContext.Categories.Where(cat => ids.Contains(cat.Id)).CountAsync(token) == ids.Count)
+                .WithMessage("Invalid category list.")
+                .When(request => request.CategoriesIds.Count != 0);
         }
     }
 }

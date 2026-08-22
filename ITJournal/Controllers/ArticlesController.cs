@@ -59,11 +59,11 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateArticle(ArticleRequest articleDTO)
         {
-            bool isValid = await _validator.ValidateAsync(articleDTO);
+            var validationResult = await _validator.ValidateAsync(articleDTO);
 
-            if (!isValid)
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(validationResult.ToDictionary());
             }
 
             List<Category> categories = await _dbContext.Categories

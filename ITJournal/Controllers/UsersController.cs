@@ -1,4 +1,5 @@
-﻿using ITJournal.DTO;
+﻿using FluentValidation.Results;
+using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.Validators;
@@ -44,11 +45,11 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser(UserRequest userDTO)
         {
-            bool isValid = await _validator.ValidateAsync(userDTO);
+            ValidationResult validationResult = await _validator.ValidateAsync(userDTO);
 
-            if (isValid == false)
+            if (validationResult.IsValid == false)
             {
-                return BadRequest();
+                return BadRequest(validationResult.ToDictionary());
             }
 
             User user = new User
@@ -86,8 +87,15 @@ namespace ITJournal.Controllers
         }
 
         [HttpPatch("{id}")]
-        public async Task<ActionResult<UserResponse>> UpdateData(int id, [FromBody] UserRequest updatableUser)
+        public async Task<ActionResult<UserResponse>> UpdateData(int id, [FromBody] UserUpdateRequest updatableUser)
         {
+            ValidationResult validationResult = await _validator.ValidateAsync(updatableUser);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.ToDictionary());
+            }
+
             User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
 
             if (user == null)

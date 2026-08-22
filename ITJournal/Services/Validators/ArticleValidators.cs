@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using FluentValidation.Results;
 
 namespace ITJournal.Services.Validators
 {
@@ -28,7 +29,7 @@ namespace ITJournal.Services.Validators
             }
         }
 
-        public async Task<bool> ValidateAsync<T>(T dto)
+        public async Task<ValidationResult> ValidateAsync<T>(T dto)
         {
             if (dto == null)
             {
@@ -44,7 +45,7 @@ namespace ITJournal.Services.Validators
             {
                 IValidator validator = (IValidator)scope.ServiceProvider.GetRequiredService(validatorType);
                 var validatorContext = new ValidationContext<object>(dto);
-                return (await validator.ValidateAsync(validatorContext)).IsValid;
+                return await validator.ValidateAsync(validatorContext);
             }
         }
     }

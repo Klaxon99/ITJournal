@@ -1,4 +1,5 @@
-﻿using ITJournal.DTO;
+﻿using FluentValidation.Results;
+using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.Validators;
@@ -40,11 +41,11 @@ namespace ITJournal.Controllers
         [HttpPost]
         public async Task<ActionResult<CategoryResponse>> CreateCategory(CategoryRequest categoryDTO)
         {
-            bool isValid = await _validator.ValidateAsync(categoryDTO);
+            ValidationResult validationResult = await _validator.ValidateAsync(categoryDTO);
 
-            if (isValid == false)
+            if (validationResult.IsValid == false)
             {
-                return BadRequest();
+                return BadRequest(validationResult.ToDictionary());
             }
 
             Category category = new Category
