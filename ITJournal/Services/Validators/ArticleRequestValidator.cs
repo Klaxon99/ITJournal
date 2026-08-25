@@ -17,7 +17,7 @@ namespace ITJournal.Services.Validators
                 .NotEmptyWithMessage()
                 .MinLengthWithMessage(5)
                 .MaxLengthWithMessage(50)
-                .MustAsync(async (title, token) => await _dbContext.Articles.AnyAsync(token) == false)
+                .MustAsync(async (title, token) => await _dbContext.Articles.AnyAsync(article => article.Title == title, token) == false)
                 .WithMessage("An article with this title already exists.");
             RuleFor(request => request.Content)
                 .NotEmptyWithMessage()

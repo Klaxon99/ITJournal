@@ -3,6 +3,7 @@ using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.Validators;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,11 +32,7 @@ namespace ITJournal.Controllers
                 .WhereIf(name != null, category => category.Name == name);
 
             return await query
-                .Select(cat => new CategoryResponse
-                {
-                    Id = cat.Id,
-                    Name = cat.Name,
-                }).ToListAsync();
+                .Select(cat => cat.Adapt<CategoryResponse>()).ToListAsync();
         }
 
         [HttpPost]
@@ -48,15 +45,12 @@ namespace ITJournal.Controllers
                 return BadRequest(validationResult.ToDictionary());
             }
 
-            Category category = new Category
-            {
-                Name = categoryDTO.Name
-            };
+            Category category = categoryDTO.Adapt<Category>();
 
             await _dbContext.AddAsync(category);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCategories), new {category.Id}, new CategoryResponse { Id = category.Id, Name = category.Name});
+            return CreatedAtAction(nameof(GetCategories), new {category.Id}, category.Adapt<CategoryResponse>());
         }
 
         [HttpPatch("{id}")]
@@ -73,7 +67,7 @@ namespace ITJournal.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new CategoryResponse { Id = category.Id, Name = category.Name});
+            return Ok(category.Adapt<CategoryResponse>());
         }
 
         [HttpDelete("{id}")]

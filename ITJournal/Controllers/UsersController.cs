@@ -3,6 +3,7 @@ using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.Validators;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,12 +34,7 @@ namespace ITJournal.Controllers
                 .Paginate(skip : usersFilter.skip, take : usersFilter.limit);
 
             return await query
-                .Select(user => new UserResponse
-                {
-                    Id = user.Id,
-                    Username = user.Username,
-                    Email = user.Email
-                })
+                .Select(user => user.Adapt<UserResponse>())
                 .ToListAsync();
         }
 
@@ -52,21 +48,12 @@ namespace ITJournal.Controllers
                 return BadRequest(validationResult.ToDictionary());
             }
 
-            User user = new User
-            {
-                Username = userDTO.Username,
-                Email = userDTO.Email
-            };
+            User user = userDTO.Adapt<User>();
 
             await _dbContext.AddAsync(user);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUsers), new UsersFilter { Id = user.Id }, new UserResponse 
-            { 
-                Email = user.Email, 
-                Id = user.Id, 
-                Username = user.Username
-            });
+            return CreatedAtAction(nameof(GetUsers), new UsersFilter { Id = user.Id }, user.Adapt<UserResponse>());
         }
 
         [HttpDelete("{id}")]
@@ -108,12 +95,7 @@ namespace ITJournal.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new UserResponse
-            {
-                Id= user.Id,
-                Email = user.Email,
-                Username = user.Username,
-            });
+            return Ok(user.Adapt<UserResponse>());
         }
     }
 }

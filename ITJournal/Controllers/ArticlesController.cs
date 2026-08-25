@@ -2,6 +2,7 @@
 using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.Validators;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,24 +36,7 @@ namespace ITJournal.Controllers
                 .Include(article => article.Author);
 
             return await query
-                .Select(article => new ArticleResponse
-                {
-                    Id = article.Id,
-                    Title = article.Title,
-                    Content = article.Content,
-                    CreatedAt = article.CreatedAt,
-                    UpdatedAt = article.UpdatedAt,
-                    Author = new UserResponse 
-                    { Id = article.Author.Id, 
-                        Email = article.Author.Email, 
-                        Username = article.Author.Username
-                    },
-                    Categories = article.Categories.Select(category => new CategoryResponse
-                    {
-                        Id = category.Id,
-                        Name = category.Name
-                    }).ToList()
-                })
+                .Select(article => article.Adapt<ArticleResponse>())
                 .ToListAsync(); 
         }
 
@@ -70,39 +54,20 @@ namespace ITJournal.Controllers
                 .Where(category => articleDTO.CategoriesIds.Contains(category.Id)).ToListAsync();
             User? author = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == articleDTO.AuthorId);
 
-            if (author == null)
-            {
-                return NotFound();
-            }
-
             Article article = new Article
             {
                 Title = articleDTO.Title,
                 Content = articleDTO.Content,
                 CreatedAt = DateTime.Now,
                 AuthorId = articleDTO.AuthorId,
+                Author = author,
                 Categories = categories
             };
 
             await _dbContext.Articles.AddAsync(article);
             await _dbContext.SaveChangesAsync();
 
-            ArticleResponse articleGetDTO = new ArticleResponse
-            {
-                Id = article.Id,
-                Title = article.Title,
-                Content = article.Content,
-                CreatedAt = article.CreatedAt,
-                Author = new UserResponse { Email = author.Email, Id= author.Id, Username = author.Username},
-                Categories = article.Categories
-                .Select(category => new CategoryResponse
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                }).ToList()
-            };
-
-            return CreatedAtAction(nameof(GetArticles), new { article.Id }, articleGetDTO);
+            return CreatedAtAction(nameof(GetArticles), new { article.Id }, article.Adapt<ArticleResponse>());
         }
 
         [HttpPatch("{id}")]
@@ -138,18 +103,7 @@ namespace ITJournal.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new ArticleResponse
-            {
-                Id = article.Id,
-                Title = article.Title,
-                Content = article.Content,
-                Author = new UserResponse { Username = article.Author.Username, Id = article.Author.Id, Email = article.Author.Email},
-                CreatedAt = article.CreatedAt,
-                UpdatedAt = article.UpdatedAt,
-                Categories = article.Categories
-                .Select(cat => new CategoryResponse { Id = cat.Id, Name = cat.Name})
-                .ToList()
-            });
+            return Ok(article.Adapt<ArticleResponse>());
         }
 
         [HttpDelete("{id}")]

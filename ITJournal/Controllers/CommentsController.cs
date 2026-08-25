@@ -3,6 +3,7 @@ using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.Validators;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,16 +34,7 @@ namespace ITJournal.Controllers
                 .WhereIf(filter.AuthorId != null, comment => comment.AuthorId == filter.AuthorId);
 
             return await query
-                .Select(comment => new CommentResponse
-                {
-                    Id = comment.Id,
-                    Text = comment.Text,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = comment.UpdatedAt,
-                    AuthorId = comment.AuthorId,
-                    ArticleId = comment.ArticleId,
-                    ParentId = comment.ParentId,
-                })
+                .Select(comment => comment.Adapt<CommentResponse>())
                 .ToListAsync();
         }
 
@@ -68,15 +60,7 @@ namespace ITJournal.Controllers
             await _dbContext.Comments.AddAsync(comment);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetComments), new { comment.Id }, new CommentResponse
-            {
-                Id = comment.Id,
-                Text = comment.Text,
-                CreatedAt = comment.CreatedAt,
-                AuthorId = comment.AuthorId,
-                ArticleId = comment.ArticleId,
-                ParentId = comment.ParentId,
-            });
+            return CreatedAtAction(nameof(GetComments), new { comment.Id }, comment.Adapt<CommentResponse>());
         }
 
         [HttpPatch("{id}")]
@@ -94,16 +78,7 @@ namespace ITJournal.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new CommentResponse
-            {
-                Id = comment.Id,
-                Text = comment.Text,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = comment.UpdatedAt,
-                AuthorId = comment.AuthorId,
-                ArticleId = comment.ArticleId,
-                ParentId = comment.ParentId
-            });
+            return Ok(comment.Adapt<CommentResponse>());
         }
 
         [HttpDelete("{id}")]
