@@ -1,11 +1,10 @@
 ﻿using FluentValidation.Results;
 using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services;
+using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Controllers
 {
@@ -13,29 +12,19 @@ namespace ITJournal.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly ITJournalDbContext _dbContext;
         private readonly ArticleValidators _validator;
+        private readonly IUserRepository _userRepository;
 
-        public UsersController(ITJournalDbContext dbContext, ArticleValidators validator)
+        public UsersController(ArticleValidators validator, IUserRepository userRepository)
         {
-            _dbContext = dbContext;
+            _userRepository = userRepository;
             _validator = validator;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers([FromQuery] UsersFilter usersFilter)
         {
-            IQueryable<User> query = _dbContext.Users.AsNoTracking();
-
-            query = query
-                .WhereIf(usersFilter.Id != null, user => user.Id == usersFilter.Id)
-                .WhereIf(usersFilter.Username != null, user => user.Username == usersFilter.Username)
-                .WhereIf(usersFilter.Email != null, user => user.Email == usersFilter.Email)
-                .Paginate(skip : usersFilter.skip, take : usersFilter.limit);
-
-            return await query
-                .Select(user => user.Adapt<UserResponse>())
-                .ToListAsync();
+            return Ok(await _userRepository.GetMappingUsers<UserResponse>(usersFilter));
         }
 
         [HttpPost]
@@ -48,10 +37,7 @@ namespace ITJournal.Controllers
                 return BadRequest(validationResult.ToDictionary());
             }
 
-            User user = userDTO.Adapt<User>();
-
-            await _dbContext.AddAsync(user);
-            await _dbContext.SaveChangesAsync();
+            User? user = await _userRepository.CreateUser(userDTO.Username, userDTO.Email);
 
             return CreatedAtAction(nameof(GetUsers), new UsersFilter { Id = user.Id }, user.Adapt<UserResponse>());
         }
@@ -59,16 +45,12 @@ namespace ITJournal.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
+            bool isDeleted = await _userRepository.DeleteUser(id);
 
-            if (user == null)
+            if (isDeleted == false)
             {
                 return NotFound();
             }
-
-            _dbContext.Remove(user);
-
-            await _dbContext.SaveChangesAsync();
 
             return NoContent();
         }
@@ -83,17 +65,12 @@ namespace ITJournal.Controllers
                 return BadRequest(validationResult.ToDictionary());
             }
 
-            User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
+            User? user = await _userRepository.UpdateUser(id, updatableUser.Username, updatableUser.Email);
 
             if (user == null)
             {
                 return NotFound();
             }
-
-            user.Email = string.IsNullOrEmpty(updatableUser.Email) ? user.Email : updatableUser.Email;
-            user.Username = string.IsNullOrEmpty(updatableUser.Username) ? user.Username : updatableUser.Username;
-
-            await _dbContext.SaveChangesAsync();
 
             return Ok(user.Adapt<UserResponse>());
         }

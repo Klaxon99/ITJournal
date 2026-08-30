@@ -1,11 +1,10 @@
 ﻿using FluentValidation.Results;
 using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services;
+using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Controllers
 {
@@ -13,26 +12,35 @@ namespace ITJournal.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ITJournalDbContext _dbContext;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly ArticleValidators _validator;
 
-        public CategoriesController(ITJournalDbContext dbContext, ArticleValidators validator)
+        public CategoriesController(ICategoryRepository categoryRepository, ArticleValidators validator)
         {
-            _dbContext = dbContext;
+            _categoryRepository = categoryRepository;
             _validator = validator;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryResponse>>> GetCategories([FromQuery]int? id = null, string? name = null)
+        public async Task<ActionResult> GetCategories([FromQuery]int? id = null, string? name = null)
         {
-            IQueryable<Category> query = _dbContext.Categories;
+            if (id.HasValue || string.IsNullOrEmpty(name) == false)
+            {
+                Category? category = (await _categoryRepository.GetCategoriesAsync(id, name)).FirstOrDefault();
 
-            query = query
-                .WhereIf(id != null, category => category.Id == id)
-                .WhereIf(name != null, category => category.Name == name);
+                if (category == null)
+                {
+                    return NotFound();
+                }
 
-            return await query
-                .Select(cat => cat.Adapt<CategoryResponse>()).ToListAsync();
+                CategoryResponse response = category.Adapt<CategoryResponse>();
+
+                return Ok(response);
+            }
+
+            IEnumerable<Category> cats = await _categoryRepository.GetCategoriesAsync(id, name);
+
+            return Ok(cats.Select(cat => cat.Adapt<CategoryResponse>()));
         }
 
         [HttpPost]
@@ -45,10 +53,7 @@ namespace ITJournal.Controllers
                 return BadRequest(validationResult.ToDictionary());
             }
 
-            Category category = categoryDTO.Adapt<Category>();
-
-            await _dbContext.AddAsync(category);
-            await _dbContext.SaveChangesAsync();
+            Category category = await _categoryRepository.CreateCategory(categoryDTO.Name);
 
             return CreatedAtAction(nameof(GetCategories), new {category.Id}, category.Adapt<CategoryResponse>());
         }
@@ -56,16 +61,12 @@ namespace ITJournal.Controllers
         [HttpPatch("{id}")]
         public async Task<ActionResult<CategoryResponse>> UpdateCategory(int id, [FromBody] CategoryRequest request)
         {
-            Category? category = await _dbContext.Categories.FirstOrDefaultAsync(cat => cat.Id == id);
+            Category? category = await _categoryRepository.UpdateCategory(id, request.Name);
 
-            if (category == null)
+            if (category == null) 
             {
-                return NotFound();
+                return NotFound(); 
             }
-
-            category.Name = request.Name;
-
-            await _dbContext.SaveChangesAsync();
 
             return Ok(category.Adapt<CategoryResponse>());
         }
@@ -73,16 +74,12 @@ namespace ITJournal.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            Category? category = await _dbContext.Categories.FirstOrDefaultAsync(cat => cat.Id == id);
+            bool deleteResult = await _categoryRepository.DeleteCategory(id);
 
-            if (category == null)
+            if (deleteResult == false)
             {
                 return NotFound();
             }
-
-            _dbContext.Remove(category);
-
-            await _dbContext.SaveChangesAsync();
 
             return NoContent();
         }

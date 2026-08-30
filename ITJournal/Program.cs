@@ -1,5 +1,6 @@
 using FluentValidation;
 using ITJournal.Models;
+using ITJournal.Services.Extensions;
 using ITJournal.Services.Validators;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddValidatorsFromAssembly(typeof(ArticleValidators).Assembly);
 builder.Services.AddSingleton<ArticleValidators>();
 builder.Services.AddDbContext<ITJournalDbContext>(opt => opt.UseInMemoryDatabase("ITJournal"));
+builder.Services.AddRepositories();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

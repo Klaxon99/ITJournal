@@ -1,10 +1,10 @@
-﻿using ITJournal.DTO;
+﻿using FluentValidation.Results;
+using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services;
+using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Controllers
 {
@@ -12,32 +12,21 @@ namespace ITJournal.Controllers
     [ApiController]
     public class ArticlesController : ControllerBase
     {
-        private readonly ITJournalDbContext _dbContext;
+        private readonly IArticleRepository _articleRepository;
         private readonly ArticleValidators _validator;
 
-        public ArticlesController(ITJournalDbContext dbContext, ArticleValidators articleValidator)
+        public ArticlesController(IArticleRepository articleRepository, ArticleValidators articleValidator)
         {
-            _dbContext = dbContext;
+            _articleRepository = articleRepository;
             _validator = articleValidator;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ArticleResponse>>> GetArticles([FromQuery] ArticlesFilterRequest filter)
         {
-            IQueryable<Article> query = _dbContext.Articles;
+            IEnumerable<ArticleResponse> articles = await _articleRepository.GetMappingArticles<ArticleResponse>(filter);
 
-            query = query
-                .WhereIf(filter.Id != null, article => article.Id == filter.Id)
-                .WhereIf(string.IsNullOrEmpty(filter.Title) == false, article => article.Title == filter.Title)
-                .WhereIf(filter.AuthorId != null, article => article.AuthorId == filter.AuthorId)
-                .WhereIf(filter.CategoriesIds.Count > 0, article => article.Categories
-                    .Where(category => filter.CategoriesIds.Contains(category.Id))
-                    .Count() == filter.CategoriesIds.Count)
-                .Include(article => article.Author);
-
-            return await query
-                .Select(article => article.Adapt<ArticleResponse>())
-                .ToListAsync(); 
+            return Ok(articles);
         }
 
         [HttpPost]
@@ -50,22 +39,7 @@ namespace ITJournal.Controllers
                 return BadRequest(validationResult.ToDictionary());
             }
 
-            List<Category> categories = await _dbContext.Categories
-                .Where(category => articleDTO.CategoriesIds.Contains(category.Id)).ToListAsync();
-            User? author = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == articleDTO.AuthorId);
-
-            Article article = new Article
-            {
-                Title = articleDTO.Title,
-                Content = articleDTO.Content,
-                CreatedAt = DateTime.Now,
-                AuthorId = articleDTO.AuthorId,
-                Author = author,
-                Categories = categories
-            };
-
-            await _dbContext.Articles.AddAsync(article);
-            await _dbContext.SaveChangesAsync();
+            Article? article = await _articleRepository.CreateArticle(articleDTO.Adapt<ArticleCreateData>());
 
             return CreatedAtAction(nameof(GetArticles), new { article.Id }, article.Adapt<ArticleResponse>());
         }
@@ -73,35 +47,14 @@ namespace ITJournal.Controllers
         [HttpPatch("{id}")]
         public async Task<ActionResult<ArticleResponse>> UpdateArticle(int id, [FromBody] ArticleUpdateRequest request)
         {
-            Article? article = await _dbContext.Articles
-                .Include(art => art.Categories)
-                .Include(art => art.Author)
-                .FirstOrDefaultAsync(article => article.Id == id);
+            ValidationResult validation = await _validator.ValidateAsync(request);
 
-            if (article == null)
+            if (validation.IsValid == false)
             {
-                return NotFound();
+                return BadRequest(validation.ToDictionary());
             }
 
-            article.Title = string.IsNullOrEmpty(request.Title) ? article.Title : request.Title;
-            article.Content = string.IsNullOrEmpty(request.Content) ? article.Content : request.Content;
-            article.UpdatedAt = DateTime.Now;
-
-            if (request.CategoriesIds.Count > 0)
-            {
-                List<Category> categories = await _dbContext.Categories
-                    .Where(cat => request.CategoriesIds.Contains(cat.Id))
-                    .ToListAsync();
-
-                article.Categories.Clear();
-
-                foreach (Category category in categories)
-                {
-                    article.Categories.Add(category);
-                }
-            }
-
-            await _dbContext.SaveChangesAsync();
+            Article? article = await _articleRepository.UpdateArticle(id, request.Adapt<ArticleUpdateData>());
 
             return Ok(article.Adapt<ArticleResponse>());
         }
@@ -109,16 +62,12 @@ namespace ITJournal.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArticle(int id)
         {
-            Article? article = await _dbContext.Articles.FirstOrDefaultAsync(article => article.Id == id);
+            bool isDeleted = await _articleRepository.DeleteArticle(id);
 
-            if (article == null)
+            if (isDeleted == false)
             {
                 return NotFound();
             }
-
-            _dbContext.Articles.Remove(article);
-
-            await _dbContext.SaveChangesAsync();
 
             return NoContent();
         }

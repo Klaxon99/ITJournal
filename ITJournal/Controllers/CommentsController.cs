@@ -1,7 +1,8 @@
 ﻿using FluentValidation.Results;
 using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services;
+using ITJournal.Services.Extensions;
+using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
@@ -13,29 +14,18 @@ namespace ITJournal.Controllers
     [ApiController]
     public class CommentsController : ControllerBase
     {
-        private readonly ITJournalDbContext _dbContext;
         private readonly ArticleValidators _validator;
-
-        public CommentsController(ITJournalDbContext dbContext, ArticleValidators validator)
+        private readonly ICommentRepository _commentRepository;
+        public CommentsController(ICommentRepository commentRepository, ArticleValidators validator)
         {
-            _dbContext = dbContext;
+            _commentRepository = commentRepository;
             _validator = validator;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CommentResponse>>> GetComments([FromQuery] CommentsFilterRequest filter)
         {
-            IQueryable<Comment> query = _dbContext.Comments;
-
-            query = query
-                .WhereIf(filter.Id != null, comment => comment.Id == filter.Id)
-                .WhereIf(filter.AticleId != null, comment => comment.ArticleId == filter.AticleId)
-                .WhereIf(filter.ParentId != null, comment => comment.ParentId == filter.ParentId)
-                .WhereIf(filter.AuthorId != null, comment => comment.AuthorId == filter.AuthorId);
-
-            return await query
-                .Select(comment => comment.Adapt<CommentResponse>())
-                .ToListAsync();
+            return Ok(await _commentRepository.GetMappingComments<CommentResponse>(filter));
         }
 
         [HttpPost]
@@ -48,17 +38,7 @@ namespace ITJournal.Controllers
                 return BadRequest(validationResult.ToDictionary());
             }
 
-            Comment comment = new Comment
-            {
-                Text = commentDTO.Text,
-                CreatedAt = DateTime.Now,
-                AuthorId = commentDTO.AuthorId,
-                ArticleId = commentDTO.ArticleId,
-                ParentId = commentDTO.ParentId
-            };
-
-            await _dbContext.Comments.AddAsync(comment);
-            await _dbContext.SaveChangesAsync();
+            Comment comment = await _commentRepository.CreateComment(commentDTO.Adapt<CommentCreateData>());
 
             return CreatedAtAction(nameof(GetComments), new { comment.Id }, comment.Adapt<CommentResponse>());
         }
@@ -66,17 +46,12 @@ namespace ITJournal.Controllers
         [HttpPatch("{id}")]
         public async Task<ActionResult<CommentResponse>> UpdateComment(int id, [FromBody] CommentUpdateRequest request)
         {
-            Comment? comment = await _dbContext.Comments.FirstOrDefaultAsync(comment => comment.Id == id);
+            Comment? comment = await _commentRepository.UpdateComment(id, request.Text);
 
             if (comment == null)
             {
                 return NotFound();
             }
-
-            comment.UpdatedAt = DateTime.Now;
-            comment.Text = request.Text;
-
-            await _dbContext.SaveChangesAsync();
 
             return Ok(comment.Adapt<CommentResponse>());
         }
@@ -84,16 +59,12 @@ namespace ITJournal.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
-            Comment? comment = await _dbContext.Comments.FirstOrDefaultAsync(comment => comment.Id == id);
+            bool idDeleted = await _commentRepository.DeleteComment(id);
 
-            if (comment == null)
+            if (idDeleted == false)
             {
                 return NotFound();
             }
-
-            _dbContext.Comments.Remove(comment);
-
-            await _dbContext.SaveChangesAsync();
 
             return NoContent();
         }

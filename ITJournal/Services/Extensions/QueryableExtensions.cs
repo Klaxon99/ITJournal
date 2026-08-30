@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ITJournal.Services
+namespace ITJournal.Services.Extensions
 {
     public static class QueryableExtensions
     {
