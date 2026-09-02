@@ -1,5 +1,6 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.Extensions;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,26 +10,26 @@ namespace ITJournal.Services.Repositories
     {
         private readonly ITJournalDbContext _dbContext;
         
-        private ArticleQueryBuilder _queryBuilder;
-
         public ArticleRepository(ITJournalDbContext dbContext)
         {
             _dbContext = dbContext;
-            _queryBuilder = new ArticleQueryBuilder();
         }
 
         public async Task<IEnumerable<Article>> GetArticles(ArticlesFilterRequest filter)
         {
-            IQueryable<Article> query = _dbContext.Articles.AsNoTracking();
-
-            return await _queryBuilder.Build(query, filter).ToListAsync();
+            return await _dbContext.Articles
+                .AsNoTracking()
+                .ApplyFilter(filter)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<T>> GetMappingArticles<T>(ArticlesFilterRequest filter)
         {
-            IQueryable<Article> query = _dbContext.Articles.AsNoTracking();
-
-            return await _queryBuilder.Build(query, filter).ProjectToType<T>().ToListAsync();
+            return await _dbContext.Articles
+                .AsNoTracking()
+                .ApplyFilter(filter)
+                .ProjectToType<T>()
+                .ToListAsync();
         }
 
         public async Task<Article?> CreateArticle(ArticleCreateData createData)

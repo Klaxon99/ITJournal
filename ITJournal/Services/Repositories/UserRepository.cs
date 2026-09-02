@@ -1,5 +1,6 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.Extensions;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,26 +10,26 @@ namespace ITJournal.Services.Repositories
     {
         private readonly ITJournalDbContext _dbContext;
 
-        private UsersQueryBuilder _queryBuilder;
-
         public UserRepository(ITJournalDbContext dbContext)
         {
             _dbContext = dbContext;
-            _queryBuilder = new UsersQueryBuilder();
         }
 
         public async Task<IEnumerable<User>> GetUsers(UsersFilter filter)
         {
-            return await _queryBuilder.Build(_dbContext.Users, filter).ToListAsync();
+            return await _dbContext.Users
+                .AsNoTracking()
+                .ApplyFilter(filter)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<T>> GetMappingUsers<T>(UsersFilter filter)
         {
-            IQueryable<User> query = _dbContext.Users.AsNoTracking();
-
-            List<T> users = await _queryBuilder.Build(query, filter).ProjectToType<T>().ToListAsync();
-
-            return users;
+            return await _dbContext.Users
+                .AsNoTracking()
+                .ApplyFilter(filter)
+                .ProjectToType<T>()
+                .ToListAsync();
         }
 
         public async Task<User?> CreateUser(string username, string email)

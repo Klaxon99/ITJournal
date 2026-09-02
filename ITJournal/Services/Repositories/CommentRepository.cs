@@ -1,5 +1,6 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.Extensions;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,22 +10,25 @@ namespace ITJournal.Services.Repositories
     {
         private readonly ITJournalDbContext _dbContext;
 
-        private CommentQueryBuilder _commentQueryBuilder;
-
         public CommentRepository(ITJournalDbContext dbContext)
         {
-            _commentQueryBuilder = new CommentQueryBuilder();
             _dbContext = dbContext;
         }
 
         public async Task<IEnumerable<Comment>> GetComment(CommentsFilterRequest filter)
         {
-            return await _commentQueryBuilder.Build(_dbContext.Comments, filter).ToListAsync();
+            return await _dbContext.Comments
+                .AsNoTracking()
+                .ApplyFilte(filter)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<T>> GetMappingComments<T>(CommentsFilterRequest filter)
         {
-            return await _commentQueryBuilder.Build(_dbContext.Comments, filter).ProjectToType<T>().ToListAsync();
+            return await _dbContext.Comments
+                .AsNoTracking()
+                .ProjectToType<T>()
+                .ToListAsync();
         }
 
         public async Task<Comment> CreateComment(CommentCreateData data)
