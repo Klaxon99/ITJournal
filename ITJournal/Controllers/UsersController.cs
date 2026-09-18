@@ -4,6 +4,7 @@ using ITJournal.Models;
 using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITJournal.Controllers
@@ -12,10 +13,10 @@ namespace ITJournal.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly ArticleValidators _validator;
+        private readonly DTOValidators _validator;
         private readonly IUserRepository _userRepository;
 
-        public UsersController(ArticleValidators validator, IUserRepository userRepository)
+        public UsersController(DTOValidators validator, IUserRepository userRepository)
         {
             _userRepository = userRepository;
             _validator = validator;
@@ -27,21 +28,7 @@ namespace ITJournal.Controllers
             return Ok(await _userRepository.GetMappingUsers<UserResponse>(usersFilter));
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateUser(UserRequest userDTO)
-        {
-            ValidationResult validationResult = await _validator.ValidateAsync(userDTO);
-
-            if (validationResult.IsValid == false)
-            {
-                return BadRequest(validationResult.ToDictionary());
-            }
-
-            User? user = await _userRepository.CreateUser(userDTO.Username, userDTO.Email);
-
-            return CreatedAtAction(nameof(GetUsers), new UsersFilter { Id = user.Id }, user.Adapt<UserResponse>());
-        }
-
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {

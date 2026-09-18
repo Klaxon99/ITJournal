@@ -1,18 +1,27 @@
 ﻿using FluentValidation;
-using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.ArticleSevice;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Services.Validators
 {
-    public class ArticleUpdateRequestValidator : AbstractValidator<ArticleUpdateRequest>
+    public class ArticleUpdateRequestValidator : AbstractValidator<ArticleServiceUpdateDto>
     {
         protected readonly ITJournalDbContext _dbContext;
 
         public ArticleUpdateRequestValidator(ITJournalDbContext iTJournalDbContext)
         {
             _dbContext = iTJournalDbContext;
-
+            RuleFor(request => request.ArticleId)
+                .Cascade(CascadeMode.Stop)
+                .GreaterThanWithMessage()
+                .MustAsync(async (source, id, token) =>
+                {
+                    return await _dbContext.Articles
+                    .Select(x => new {x.Id, x.AuthorId})
+                    .AnyAsync(x => x.Id == id && x.AuthorId == source.AuthorId);
+                })
+                .WithMessage("No such combination of article and author was found.");
             RuleFor(request => request.Title)
                 .NotEmptyWithMessage()
                 .MinLengthWithMessage(5)

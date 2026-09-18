@@ -18,6 +18,7 @@ namespace ITJournal.Services.Repositories
         public async Task<IEnumerable<Article>> GetArticles(ArticlesFilterRequest filter)
         {
             return await _dbContext.Articles
+                .Include(article => article.Author)
                 .AsNoTracking()
                 .ApplyFilter(filter)
                 .ToListAsync();
@@ -26,6 +27,7 @@ namespace ITJournal.Services.Repositories
         public async Task<IEnumerable<T>> GetMappingArticles<T>(ArticlesFilterRequest filter)
         {
             return await _dbContext.Articles
+                .Include(article => article.Author)
                 .AsNoTracking()
                 .ApplyFilter(filter)
                 .ProjectToType<T>()

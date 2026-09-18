@@ -32,14 +32,15 @@ namespace ITJournal.Services.Repositories
                 .ToListAsync();
         }
 
-        public async Task<User?> CreateUser(string username, string email)
+        public async Task<User?> CreateUserAsync(UserCreateData userData)
         {
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email))
-            {
-                return null;
-            }
-
-            User user = new User { Username = username, Email = email };
+            User user = new User
+            { 
+                Username = userData.Username, 
+                Email = userData.Email,
+                PasswordHash = userData.PasswordHash,
+                Role = userData.Role
+            };
 
             _dbContext.Users.Add(user);
 

@@ -9,10 +9,10 @@ namespace ITJournal.Services.Validators
         public UserUpdateRequestValidator(ITJournalDbContext dbContext)
         {
             RuleFor(user => user.Email)
-                .EmailAdressWithMessage(dbContext)
+                .EmailAdressUniqueWithMessage(dbContext)
                 .When(request => string.IsNullOrEmpty(request.Email) == false);
             RuleFor(user => user.Username)
-                .UsernameWithMessage(dbContext)
+                .UsernameUniqueWithMessage(dbContext)
                 .When(request => string.IsNullOrEmpty(request.Username) == false);
         }
     }

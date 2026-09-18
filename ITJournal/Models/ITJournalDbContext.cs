@@ -19,6 +19,8 @@ namespace ITJournal.Models
             {
                 entity.HasKey(x => x.Id);
                 entity.Property(user => user.Id).IsRequired();
+                entity.Property(user => user.PasswordHash).IsRequired();
+                entity.Property(user => user.Role).HasConversion<string>();
                 entity.Property(user => user.Username).IsRequired().HasMaxLength(256);
                 entity.Property(user => user.Email).IsRequired().HasMaxLength(256);
                 entity.HasIndex(user => user.Email);

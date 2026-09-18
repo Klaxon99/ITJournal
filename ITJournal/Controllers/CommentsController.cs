@@ -14,9 +14,9 @@ namespace ITJournal.Controllers
     [ApiController]
     public class CommentsController : ControllerBase
     {
-        private readonly ArticleValidators _validator;
+        private readonly DTOValidators _validator;
         private readonly ICommentRepository _commentRepository;
-        public CommentsController(ICommentRepository commentRepository, ArticleValidators validator)
+        public CommentsController(ICommentRepository commentRepository, DTOValidators validator)
         {
             _commentRepository = commentRepository;
             _validator = validator;

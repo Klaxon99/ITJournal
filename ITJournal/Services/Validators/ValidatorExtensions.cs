@@ -41,7 +41,28 @@ namespace ITJournal.Services.Validators
             return options.GreaterThan(minValue).WithMessage(message ?? $"Value must be greater than {minValue}.");
         }
 
-        public static IRuleBuilderOptions<T, string?> EmailAdressWithMessage<T>(this IRuleBuilder<T, string?> options, ITJournalDbContext dbContext)
+        public static IRuleBuilderOptions<T, string?> EmailAdressExistsWithMessage<T>(this IRuleBuilder<T, string?> options, ITJournalDbContext dbContext)
+        {
+            return options
+                .NotEmptyWithMessage()
+                .EmailAddress()
+                .MustAsync(async (email, token) => await dbContext.Users
+                    .AnyAsync(user => user.Email == email) == true)
+                .WithMessage("A user with this email already exists.");
+        }
+
+        public static IRuleBuilderOptions<T, string?> UsernameExistsWithMessage<T>(this IRuleBuilder<T, string?> options, ITJournalDbContext dbContext)
+        {
+            return options
+                .NotEmptyWithMessage()
+                .MinLengthWithMessage(5)
+                .MaxLengthWithMessage(25)
+                .MustAsync(async (username, token) => await dbContext.Users
+                    .AnyAsync(user => user.Username == username, token) == true)
+                .WithMessage("A user with this username already exists.");
+        }
+
+        public static IRuleBuilderOptions<T, string?> EmailAdressUniqueWithMessage<T>(this IRuleBuilder<T, string?> options, ITJournalDbContext dbContext)
         {
             return options
                 .NotEmptyWithMessage()
@@ -51,7 +72,7 @@ namespace ITJournal.Services.Validators
                 .WithMessage("A user with this email already exists.");
         }
 
-        public static IRuleBuilderOptions<T, string?> UsernameWithMessage<T>(this IRuleBuilder<T, string?> options, ITJournalDbContext dbContext)
+        public static IRuleBuilderOptions<T, string?> UsernameUniqueWithMessage<T>(this IRuleBuilder<T, string?> options, ITJournalDbContext dbContext)
         {
             return options
                 .NotEmptyWithMessage()
@@ -59,7 +80,7 @@ namespace ITJournal.Services.Validators
                 .MaxLengthWithMessage(25)
                 .MustAsync(async (username, token) => await dbContext.Users
                     .AnyAsync(user => user.Username == username, token) == false)
-                .WithMessage("A user with this username already exists."); ;
+                .WithMessage("A user with this username already exists.");
         }
     }
 }

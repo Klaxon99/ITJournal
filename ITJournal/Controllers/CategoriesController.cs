@@ -13,9 +13,9 @@ namespace ITJournal.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryRepository _categoryRepository;
-        private readonly ArticleValidators _validator;
+        private readonly DTOValidators _validator;
 
-        public CategoriesController(ICategoryRepository categoryRepository, ArticleValidators validator)
+        public CategoriesController(ICategoryRepository categoryRepository, DTOValidators validator)
         {
             _categoryRepository = categoryRepository;
             _validator = validator;

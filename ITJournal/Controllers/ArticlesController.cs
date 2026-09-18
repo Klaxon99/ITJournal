@@ -4,18 +4,20 @@ using ITJournal.Models;
 using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITJournal.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class ArticlesController : ControllerBase
     {
         private readonly IArticleRepository _articleRepository;
-        private readonly ArticleValidators _validator;
+        private readonly DTOValidators _validator;
 
-        public ArticlesController(IArticleRepository articleRepository, ArticleValidators articleValidator)
+        public ArticlesController(IArticleRepository articleRepository, DTOValidators articleValidator)
         {
             _articleRepository = articleRepository;
             _validator = articleValidator;
@@ -29,6 +31,7 @@ namespace ITJournal.Controllers
             return Ok(articles);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateArticle(ArticleRequest articleDTO)
         {
@@ -44,6 +47,7 @@ namespace ITJournal.Controllers
             return CreatedAtAction(nameof(GetArticles), new { article.Id }, article.Adapt<ArticleResponse>());
         }
 
+        [Authorize]
         [HttpPatch("{id}")]
         public async Task<ActionResult<ArticleResponse>> UpdateArticle(int id, [FromBody] ArticleUpdateRequest request)
         {
@@ -59,6 +63,7 @@ namespace ITJournal.Controllers
             return Ok(article.Adapt<ArticleResponse>());
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArticle(int id)
         {

@@ -3,17 +3,17 @@ using FluentValidation.Results;
 
 namespace ITJournal.Services.Validators
 {
-    public class ArticleValidators
+    public class DTOValidators
     {
         private Dictionary<Type, Type> _validators;
         private IServiceScopeFactory _scopeFactory;
 
-        public ArticleValidators(IServiceScopeFactory serviceScopeFactory)
+        public DTOValidators(IServiceScopeFactory serviceScopeFactory)
         {
             _scopeFactory = serviceScopeFactory;
             _validators = new Dictionary<Type, Type>();
 
-            var assembly = typeof(ArticleValidators).Assembly;
+            var assembly = typeof(DTOValidators).Assembly;
 
             IEnumerable<Type> validatorsTypes = assembly.GetTypes()
                 .Where(type =>

@@ -2,7 +2,7 @@
 
 namespace ITJournal.Services.Extensions
 {
-    public static class SericesBuilderExtensions
+    public static class ServicesBuilderExtensions
     {
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
