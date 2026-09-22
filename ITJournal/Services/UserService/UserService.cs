@@ -62,7 +62,7 @@ namespace ITJournal.Services.UserService
                 return Result.Fail("Wrong password.");
             }
 
-            return _jwtGenerator.GenerateToken(user.Username, user.Role);
+            return _jwtGenerator.GenerateToken(user.Id, user.Username, user.Role);
         }
     }
 }

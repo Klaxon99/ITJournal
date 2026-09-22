@@ -9,9 +9,9 @@ namespace ITJournal.Services.Repositories
 
         public Task<IEnumerable<T>> GetMappingArticles<T>(ArticlesFilterRequest filter);
 
-        public Task<Article?> CreateArticle(ArticleCreateData createData);
+        public Task<Article> CreateArticle(ArticleCreateData createData);
 
-        public Task<Article?> UpdateArticle(int id, ArticleUpdateData updateData);
+        public Task<Article> UpdateArticle(int id, ArticleUpdateData updateData);
 
         public Task<bool> DeleteArticle(int id);
     }

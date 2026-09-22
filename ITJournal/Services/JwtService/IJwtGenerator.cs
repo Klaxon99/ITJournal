@@ -4,6 +4,6 @@ namespace ITJournal.Services
 {
     public interface IJwtGenerator
     {
-        public string GenerateToken(string username, UserRole role);
+        public string GenerateToken(int id, string username, UserRole role);
     }
 }

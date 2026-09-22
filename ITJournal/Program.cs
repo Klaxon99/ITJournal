@@ -1,6 +1,7 @@
 using FluentValidation;
 using ITJournal.Models;
 using ITJournal.Services;
+using ITJournal.Services.ArticleSevice;
 using ITJournal.Services.Extensions;
 using ITJournal.Services.UserService;
 using ITJournal.Services.Validators;
@@ -52,6 +53,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(DTOValidators).Assembly);
 
 builder.Services.AddScoped<IJwtGenerator, JwtSevice>();
 builder.Services.AddScoped(typeof(UserService));
+builder.Services.AddScoped(typeof(ArticleService));
 
 builder.Services.AddSingleton<DTOValidators>();
 builder.Services.AddDbContext<ITJournalDbContext>(opt => opt.UseInMemoryDatabase("ITJournal"));

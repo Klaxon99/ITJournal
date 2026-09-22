@@ -19,10 +19,11 @@ namespace ITJournal.Services
             _configuration = configuration;
         }
 
-        public string GenerateToken(string username, UserRole role)
+        public string GenerateToken(int id, string username, UserRole role)
         {
             Claim[] claims = new Claim[]
             {
+                new Claim(ClaimTypes.NameIdentifier, id.ToString()),
                 new Claim(ClaimTypes.Name, username),
                 new Claim(ClaimTypes.Role, role.ToString())
             };

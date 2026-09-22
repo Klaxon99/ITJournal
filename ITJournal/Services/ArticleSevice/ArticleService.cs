@@ -1,7 +1,7 @@
 ﻿using FluentResults;
 using FluentValidation.Results;
-using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.Extensions;
 using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
@@ -21,44 +21,41 @@ namespace ITJournal.Services.ArticleSevice
 
         public async Task<Result<Article>> CreateArticle(ArticleServiceCreateData articleData)
         {
-            ValidationResult validationResult = await _dTOValidators.ValidateAsync(articleData);
-
-            if (validationResult.IsValid == false)
-            {
-                return new Result<Article>().WithErrors(validationResult.Errors.Select(error => error.ErrorMessage));
-            }
-
-            return await _articleRepository.CreateArticle(articleData.Adapt<ArticleCreateData>());
-
+            return await CallValid(
+                articleData, 
+                async () => await _articleRepository.CreateArticle(articleData.Adapt<ArticleCreateData>()));
         }
 
         public async Task<Result<bool>> DeleteArticle(ArticleServiceDeleteDto data)
         {
-            ValidationResult validationResult = await _dTOValidators.ValidateAsync(data);
-
-            if (validationResult.IsValid)
-            {
-                return new Result<bool>().WithErrors(validationResult.Errors.Select(error => error.ErrorMessage));
-            }
-
-            return await _articleRepository.DeleteArticle(data.ArticleId);
+            return await CallValid(data, async () => await _articleRepository.DeleteArticle(data.ArticleId));
         }
 
         public async Task<Result<Article>> UpdateArticle(ArticleServiceUpdateDto articleUpdateDto)
         {
-            ValidationResult validationResult = await _dTOValidators.ValidateAsync(articleUpdateDto);
+            return await CallValid(
+                articleUpdateDto,
+                async () => await _articleRepository.UpdateArticle(
+                    articleUpdateDto.ArticleId, 
+                    articleUpdateDto.Adapt<ArticleUpdateData>())
+                );
+        }
 
-            if (validationResult.IsValid == false)
+        private async Task<Result<bool>> ValidateDto<T>(T dto)
+        {
+            return (await _dTOValidators.ValidateAsync(dto)).ToResult();
+        }
+
+        private async Task<Result<T>> CallValid<T, D>(D dto, Func<Task<T>> task) 
+        {
+            Result<bool> result = await ValidateDto(dto);
+
+            if (result.IsFailed)
             {
-                return new Result<Article>().WithErrors(validationResult.Errors.Select(error => error.ErrorMessage));
+                return Result.Fail(result.Errors);
             }
 
-            return await _articleRepository.UpdateArticle(articleUpdateDto.ArticleId, articleUpdateDto.Adapt<ArticleUpdateData>());
+            return await task.Invoke();
         }
-    }
-
-    public class ArticleServiceCreateData
-    {
-
     }
 }

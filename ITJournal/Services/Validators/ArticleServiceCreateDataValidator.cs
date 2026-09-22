@@ -1,18 +1,25 @@
 ﻿using FluentValidation;
-using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.ArticleSevice;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Services.Validators
 {
-    public class ArticleRequestValidator : AbstractValidator<ArticleRequest>
+    public class ArticleServiceCreateDataValidator : AbstractValidator<ArticleServiceCreateData>
     {
         protected readonly ITJournalDbContext _dbContext;
 
-        public ArticleRequestValidator(ITJournalDbContext iTJournalDbContext)
+        public ArticleServiceCreateDataValidator(ITJournalDbContext iTJournalDbContext)
         {
             _dbContext = iTJournalDbContext;
 
+            RuleLevelCascadeMode = CascadeMode.Stop;
+
+            RuleFor(request => request.AuthorId)
+               .NotNull().WithMessage("Author cann not be null.")
+               .GreaterThanWithMessage()
+               .MustAsync(async (author, token) => await _dbContext.Users.FirstOrDefaultAsync(token) != null)
+               .WithMessage("The author doues not exists.");
             RuleFor(request => request.Title)
                 .NotEmptyWithMessage()
                 .MinLengthWithMessage(5)
@@ -27,12 +34,6 @@ namespace ITJournal.Services.Validators
                 .Must(ids => ids.Distinct().ToList().Count == ids.Count)
                 .MustAsync(async (ids, token) => await _dbContext.Categories.Where(cat => ids.Contains(cat.Id)).CountAsync(token) == ids.Count)
                 .WithMessage("Incorrect categories");
-            RuleFor(request => request.AuthorId)
-               .NotNull().WithMessage("Author cann not be null.")
-               .GreaterThanWithMessage()
-               .MustAsync(async (author, token) => await _dbContext.Users.FirstOrDefaultAsync(token) != null)
-               .WithMessage("The author doues not exists.");
         }
     }
-
 }
