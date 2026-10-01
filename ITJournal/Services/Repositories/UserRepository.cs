@@ -32,7 +32,7 @@ namespace ITJournal.Services.Repositories
                 .ToListAsync();
         }
 
-        public async Task<User?> CreateUserAsync(UserCreateData userData)
+        public async Task<User?> CreateUserAsync(UserRepositoryCreateData userData)
         {
             User user = new User
             { 
@@ -65,7 +65,7 @@ namespace ITJournal.Services.Repositories
             return true;
         }
 
-        public async Task<User?> UpdateUser(int id, string? username, string? email)
+        public async Task<User?> UpdateUser(int id, UserUpdateRequest updateData)
         {
             User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
 
@@ -74,14 +74,14 @@ namespace ITJournal.Services.Repositories
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(username) == false)
+            if (string.IsNullOrWhiteSpace(updateData.Username) == false)
             {
-                user.Username = username;
+                user.Username = updateData.Username;
             }
 
-            if (string.IsNullOrWhiteSpace(email) == false)
+            if (string.IsNullOrWhiteSpace(updateData.Email) == false)
             {
-                user.Email = email;
+                user.Email = updateData.Email;
             }
 
             await _dbContext.SaveChangesAsync();

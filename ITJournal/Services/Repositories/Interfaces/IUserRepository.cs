@@ -9,10 +9,10 @@ namespace ITJournal.Services.Repositories
 
         public Task<IEnumerable<T>> GetMappingUsers<T>(UsersFilter filter);
 
-        public Task<User?> CreateUserAsync(UserCreateData userData);
+        public Task<User?> CreateUserAsync(UserRepositoryCreateData userData);
 
         public Task<bool> DeleteUser(int id);
 
-        public Task<User?> UpdateUser(int id, string? username, string? email);
+        public Task<User?> UpdateUser(int id, UserUpdateRequest updateData);
     }
 }

@@ -1,8 +1,8 @@
-﻿using FluentValidation.Results;
+﻿using FluentResults;
 using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services.Repositories;
-using ITJournal.Services.Validators;
+using ITJournal.Services.Extensions;
+using ITJournal.Services.UserService;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,51 +13,50 @@ namespace ITJournal.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly DTOValidators _validator;
-        private readonly IUserRepository _userRepository;
+        private readonly UserService _userService;
 
-        public UsersController(DTOValidators validator, IUserRepository userRepository)
+        public UsersController(UserService userService)
         {
-            _userRepository = userRepository;
-            _validator = validator;
+            _userService = userService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers([FromQuery] UsersFilter usersFilter)
         {
-            return Ok(await _userRepository.GetMappingUsers<UserResponse>(usersFilter));
+            return Ok(await _userService.GetMappingUser<UserResponse>(usersFilter));
         }
 
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            bool isDeleted = await _userRepository.DeleteUser(id);
-
-            if (isDeleted == false)
+            Result<bool> result = await _userService.DeleteUser(new()
             {
-                return NotFound();
+                AdminId = this.GetUserId()!.Value,
+                UserDeleteId = id
+            });
+
+            if (result.IsFailed)
+            {
+                return BadRequest(result.ToDictionary());
             }
 
             return NoContent();
         }
 
-        [HttpPatch("{id}")]
-        public async Task<ActionResult<UserResponse>> UpdateData(int id, [FromBody] UserUpdateRequest updatableUser)
+        [Authorize]
+        [HttpPatch]
+        public async Task<ActionResult<UserResponse>> UpdateData([FromBody] UserUpdateRequest updatableUser)
         {
-            ValidationResult validationResult = await _validator.ValidateAsync(updatableUser);
+            int userId = this.GetUserId()!.Value;
+            Result<User?> result = await _userService.UpdateUser(userId, updatableUser);
 
-            if (!validationResult.IsValid)
+            if (result.IsFailed)
             {
-                return BadRequest(validationResult.ToDictionary());
+                return BadRequest(result.ToDictionary());
             }
 
-            User? user = await _userRepository.UpdateUser(id, updatableUser.Username, updatableUser.Email);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
+            User user = result.Value!;
 
             return Ok(user.Adapt<UserResponse>());
         }

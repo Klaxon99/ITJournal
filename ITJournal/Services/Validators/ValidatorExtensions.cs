@@ -59,7 +59,7 @@ namespace ITJournal.Services.Validators
                 .MaxLengthWithMessage(25)
                 .MustAsync(async (username, token) => await dbContext.Users
                     .AnyAsync(user => user.Username == username, token) == true)
-                .WithMessage("A user with this username already exists.");
+                .WithMessage("A user with this username does not exists.");
         }
 
         public static IRuleBuilderOptions<T, string?> EmailAdressUniqueWithMessage<T>(this IRuleBuilder<T, string?> options, ITJournalDbContext dbContext)

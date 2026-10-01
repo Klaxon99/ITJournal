@@ -5,7 +5,8 @@ namespace ITJournal.DTO
             int? Id = null,
             string? Username = null,
             string? Email = null,
-            int? limit = null,
-            int? skip = null
+            int? Limit = null,
+            int? Skip = null,
+            bool WithArticles = false
         );
 }

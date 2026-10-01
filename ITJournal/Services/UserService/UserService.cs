@@ -1,7 +1,7 @@
 ﻿using FluentResults;
-using FluentValidation.Results;
 using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.Extensions;
 using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
@@ -11,58 +11,43 @@ namespace ITJournal.Services.UserService
     public class UserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IJwtGenerator _jwtGenerator;
-        private readonly DTOValidators _dtoValidators;
+        private readonly DTOValidators _validator;
 
-        public UserService(IUserRepository userRepository, IJwtGenerator jwtGenerator, DTOValidators validators)
+        public UserService(IUserRepository userRepository, DTOValidators validators)
         {
             _userRepository = userRepository;
-            _jwtGenerator = jwtGenerator;
-            _dtoValidators = validators;
+            _validator = validators;
         }
 
-        public async Task<Result<User>> Registrate(UserRegistrateDto dto)
+        public async Task<IEnumerable<T>> GetMappingUser<T>(UsersFilter filter)
         {
-            ValidationResult validationResult = await _dtoValidators.ValidateAsync(dto);
-
-            if (validationResult.IsValid == false)
-            {
-                Result<User> result = new Result<User>();
-
-                result.WithErrors(validationResult.ToDictionary().Values.SelectMany(errList => errList));
-
-                return result;
-            }
-
-            UserCreateData data = dto.Adapt<UserCreateData>();
-            data.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            User? user = await _userRepository.CreateUserAsync(data);
-
-            return user;
+            return await _userRepository.GetMappingUsers<T>(filter);
         }
 
-        public async Task<Result<string>> Login(UserLoginDto dto)
+        public async Task<Result<bool>> DeleteUser(UserServiceDeleteData data)
         {
-            ValidationResult validationResult = await _dtoValidators.ValidateAsync(dto);
+            Result<bool> result = (await _validator.ValidateAsync(data)).ToResult();
 
-            if (validationResult.IsValid == false)
+            if (result.IsFailed)
             {
-                Result<string> result = new Result<string>();
-
-                result.WithErrors(validationResult.ToDictionary().Values.SelectMany(x => x));
-
-                return result;
+                return Result.Fail(result.Errors);
             }
 
-            User? user = (await _userRepository.GetUsers(new UsersFilter { Username = dto.Username })).FirstOrDefault(); ;
+            return true;
+        }
 
-            if (BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash) == false)
+        public async Task<Result<User?>> UpdateUser(int userId, UserUpdateRequest data)
+        {
+            UserServiceUpdateData updateData = new UserServiceUpdateData() {UserId = userId };
+            updateData = data.Adapt(updateData);
+            Result<bool> result = (await _validator.ValidateAsync(updateData)).ToResult();
+
+            if (result.IsFailed)
             {
-                return Result.Fail("Wrong password.");
+                return Result.Fail(result.Errors);
             }
 
-            return _jwtGenerator.GenerateToken(user.Id, user.Username, user.Role);
+            return await _userRepository.UpdateUser(userId, data);
         }
     }
 }

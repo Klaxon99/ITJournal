@@ -12,9 +12,9 @@ namespace ITJournal.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly AuthService _userService;
 
-        public AuthController(UserService userService, DTOValidators validators)
+        public AuthController(AuthService userService, DTOValidators validators)
         {
             _userService = userService;
         }

@@ -1,5 +1,6 @@
 ﻿using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -26,7 +27,7 @@ namespace ITJournal.Services.Extensions
                 .WhereIf(usersFilter.Id != null, user => user.Id == usersFilter.Id)
                 .WhereIf(usersFilter.Username != null, user => user.Username == usersFilter.Username)
                 .WhereIf(usersFilter.Email != null, user => user.Email == usersFilter.Email)
-                .Paginate(skip: usersFilter.skip, take: usersFilter.limit);
+                .Paginate(skip: usersFilter.Skip, take: usersFilter.Limit);
         }
 
         public static IQueryable<Article> ApplyFilter(this IQueryable<Article> query, ArticlesFilterRequest filter)

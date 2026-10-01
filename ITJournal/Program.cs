@@ -52,6 +52,7 @@ builder.Services.AddOpenApi(options =>
 builder.Services.AddValidatorsFromAssembly(typeof(DTOValidators).Assembly);
 
 builder.Services.AddScoped<IJwtGenerator, JwtSevice>();
+builder.Services.AddScoped(typeof(AuthService));
 builder.Services.AddScoped(typeof(UserService));
 builder.Services.AddScoped(typeof(ArticleService));
 

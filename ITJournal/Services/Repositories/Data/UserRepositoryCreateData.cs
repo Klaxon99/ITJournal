@@ -2,7 +2,7 @@
 
 namespace ITJournal.Services.Repositories
 {
-    public class UserCreateData
+    public class UserRepositoryCreateData
     {
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
