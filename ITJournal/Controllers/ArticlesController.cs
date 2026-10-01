@@ -1,36 +1,29 @@
 ﻿using FluentResults;
-using FluentValidation.Results;
 using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services.ArticleSevice;
 using ITJournal.Services.Extensions;
-using ITJournal.Services.Repositories;
-using ITJournal.Services.Validators;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace ITJournal.Controllers
 {
-
     [Route("api/[controller]")]
     [ApiController]
     public class ArticlesController : ControllerBase
     {
-        private readonly IArticleRepository _articleRepository;
         private readonly ArticleService _articleService;
 
-        public ArticlesController(IArticleRepository articleRepository, ArticleService articleService)
+        public ArticlesController(ArticleService articleService)
         {
             _articleService = articleService;
-            _articleRepository = articleRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ArticleResponse>>> GetArticles([FromQuery] ArticlesFilterRequest filter)
         {
-            IEnumerable<ArticleResponse> articles = await _articleRepository.GetMappingArticles<ArticleResponse>(filter);
+            IEnumerable<ArticleResponse> articles = await _articleService.GetMappingArticles<ArticleResponse>(filter.Adapt<ArticleServiceFilter>());
 
             return Ok(articles);
         }
@@ -40,10 +33,10 @@ namespace ITJournal.Controllers
         public async Task<IActionResult> CreateArticle(ArticleRequest articleDTO)
         {
             ArticleServiceCreateData createData = articleDTO.Adapt<ArticleServiceCreateData>();
-            createData.AuthorId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            createData.AuthorId = this.GetUserId()!.Value;
             Result<Article> result = await _articleService.CreateArticle(createData);
 
-            if (result.IsSuccess == false)
+            if (result.IsFailed)
             {
                 return BadRequest(result.ToDictionary());
             }
@@ -57,7 +50,7 @@ namespace ITJournal.Controllers
         {
             ArticleServiceUpdateDto articleServiceUpdateDto = request.Adapt<ArticleServiceUpdateDto>();
             articleServiceUpdateDto.ArticleId = id;
-            articleServiceUpdateDto.AuthorId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            articleServiceUpdateDto.AuthorId = this.GetUserId()!.Value;
 
             Result<Article> result = await _articleService.UpdateArticle(articleServiceUpdateDto);
 
@@ -68,19 +61,21 @@ namespace ITJournal.Controllers
 
             return Ok(result.Value.Adapt<ArticleResponse>());
         }
-/*
+
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArticle(int id)
         {
-            bool isDeleted = await _articleRepository.DeleteArticle(id);
+            int userId = this.GetUserId()!.Value;
 
-            if (isDeleted == false)
+            Result<bool> isDeleted = await _articleService.DeleteArticle(new ArticleServiceDeleteDto { ArticleId = id, UserId = userId});
+
+            if (isDeleted.IsFailed)
             {
                 return NotFound();
             }
 
             return NoContent();
-        }*/
+        }
     }
 }

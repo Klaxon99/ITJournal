@@ -1,5 +1,5 @@
 ﻿using FluentResults;
-using FluentValidation.Results;
+using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services.Extensions;
 using ITJournal.Services.Repositories;
@@ -17,6 +17,16 @@ namespace ITJournal.Services.ArticleSevice
         {
             _articleRepository = articleRepository;
             _dTOValidators = dTOValidators;
+        }
+
+        public async Task<IEnumerable<Article>> GetArticles(ArticleServiceFilter filter)
+        {
+            return await _articleRepository.GetArticles(filter.Adapt<ArticlesFilterRequest>());
+        }
+
+        public async Task<IEnumerable<T>> GetMappingArticles<T>(ArticleServiceFilter filter)
+        {
+            return await _articleRepository.GetMappingArticles<T>(filter.Adapt<ArticlesFilterRequest>());
         }
 
         public async Task<Result<Article>> CreateArticle(ArticleServiceCreateData articleData)

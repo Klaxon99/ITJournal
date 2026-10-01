@@ -19,7 +19,7 @@ namespace ITJournal.Services.Repositories
         {
             return await _dbContext.Comments
                 .AsNoTracking()
-                .ApplyFilte(filter)
+                .ApplyFilter(filter)
                 .ToListAsync();
         }
 

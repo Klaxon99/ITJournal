@@ -41,7 +41,7 @@ namespace ITJournal.Services.Extensions
                 .Include(article => article.Author);
         }
 
-        public static IQueryable<Comment> ApplyFilte(this IQueryable<Comment> query, CommentsFilterRequest filter)
+        public static IQueryable<Comment> ApplyFilter(this IQueryable<Comment> query, CommentsFilterRequest filter)
         {
             return query
                 .WhereIf(filter.Id != null, comment => comment.Id == filter.Id)

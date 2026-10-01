@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Services.Validators
 {
-    public class ArticleUpdateRequestValidator : AbstractValidator<ArticleServiceUpdateDto>
+    public class ArticleServiceUpdateValidator : AbstractValidator<ArticleServiceUpdateDto>
     {
         protected readonly ITJournalDbContext _dbContext;
 
-        public ArticleUpdateRequestValidator(ITJournalDbContext iTJournalDbContext)
+        public ArticleServiceUpdateValidator(ITJournalDbContext iTJournalDbContext)
         {
             _dbContext = iTJournalDbContext;
             RuleFor(request => request.ArticleId)
