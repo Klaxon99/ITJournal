@@ -1,6 +1,6 @@
 ﻿using FluentResults;
 using FluentValidation.Results;
-using ITJournal.DTO;
+using ITJournal.Services.Extensions;
 using ITJournal.Models;
 using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
@@ -23,15 +23,11 @@ namespace ITJournal.Services.UserService
 
         public async Task<Result<User>> Registrate(UserRegistrateDto dto)
         {
-            ValidationResult validationResult = await _dtoValidators.ValidateAsync(dto);
+            Result<bool> validationResult = (await _dtoValidators.ValidateAsync(dto)).ToResult();
 
-            if (validationResult.IsValid == false)
+            if(validationResult.IsFailed)
             {
-                Result<User> result = new Result<User>();
-
-                result.WithErrors(validationResult.ToDictionary().Values.SelectMany(errList => errList));
-
-                return result;
+                return Result.Fail(validationResult.Errors);
             }
 
             UserRepositoryCreateData data = dto.Adapt<UserRepositoryCreateData>();
@@ -44,15 +40,11 @@ namespace ITJournal.Services.UserService
 
         public async Task<Result<string>> Login(UserLoginDto dto)
         {
-            ValidationResult validationResult = await _dtoValidators.ValidateAsync(dto);
+            Result<bool> validationResult = (await _dtoValidators.ValidateAsync(dto)).ToResult();
 
-            if (validationResult.IsValid == false)
+            if (validationResult.IsFailed)
             {
-                Result<string> result = new Result<string>();
-
-                result.WithErrors(validationResult.ToDictionary().Values.SelectMany(x => x));
-
-                return result;
+                return Result.Fail(validationResult.Errors);
             }
 
             User? user = (await _userRepository.GetUsers(new(){ Username = dto.Username })).FirstOrDefault();
