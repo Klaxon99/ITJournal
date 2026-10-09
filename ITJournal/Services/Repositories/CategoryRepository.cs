@@ -1,6 +1,8 @@
-﻿using ITJournal.Models;
+﻿using ITJournal.Common;
+using ITJournal.Models;
+using ITJournal.Services.Extensions;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace ITJournal.Services.Repositories
 {
@@ -11,6 +13,14 @@ namespace ITJournal.Services.Repositories
         public CategoryRepository(ITJournalDbContext dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public async Task<IEnumerable<T>> GetMappingCategory<T>(CategoryFilter filter)
+        {
+            return await _dbContext.Categories
+                .ApplyFilter(filter)
+                .ProjectToType<T>()
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Category>> GetCategoriesAsync(int? id = null, string? name = null)
@@ -28,7 +38,7 @@ namespace ITJournal.Services.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<Category> CreateCategory(string name)
+        public async Task<Category> CreateCategoryAsync(string name)
         {
             Category category = new Category { Name = name };
 
@@ -38,7 +48,7 @@ namespace ITJournal.Services.Repositories
             return category;
         }
 
-        public async Task<Category?> UpdateCategory(int id, string name)
+        public async Task<Category?> UpdateCategoryAsync(int id, string name)
         {
             Category? category = (await GetCategoriesAsync(id)).FirstOrDefault();
 
@@ -52,7 +62,7 @@ namespace ITJournal.Services.Repositories
             return category;
         }
 
-        public async Task<bool> DeleteCategory(int id)
+        public async Task<bool> DeleteCategoryAsync(int id)
         {
             Category? category = await _dbContext.Categories.FirstOrDefaultAsync(cat => cat.Id == id);
 

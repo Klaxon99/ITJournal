@@ -1,12 +1,12 @@
+using ITJournal.Common;
+
 namespace ITJournal.DTO
 {
-    public record UsersFilter
-        (
-            int? Id = null,
-            string? Username = null,
-            string? Email = null,
-            int? Limit = null,
-            int? Skip = null,
-            bool WithArticles = false
-        );
+    public class UsersFilter : RequestFilterData
+    {
+        public int? Id { get; set; }
+        public string? Username { get; set; }
+        public string? Email { get; set; }
+        public bool WithArticles { get; set; } = false;
+    }
 }

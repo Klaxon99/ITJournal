@@ -53,11 +53,13 @@ builder.Services.AddValidatorsFromAssembly(typeof(DTOValidators).Assembly);
 
 builder.Services.AddScoped<IJwtGenerator, JwtSevice>();
 builder.Services.AddScoped(typeof(AuthService));
+builder.Services.AddScoped(typeof(CommentService));
 builder.Services.AddScoped(typeof(UserService));
 builder.Services.AddScoped(typeof(ArticleService));
+builder.Services.AddScoped(typeof(CategoryService));
 
 builder.Services.AddSingleton<DTOValidators>();
-builder.Services.AddDbContext<ITJournalDbContext>(opt => opt.UseInMemoryDatabase("ITJournal"));
+builder.Services.AddDbContext<ITJournalDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddRepositories();
 var app = builder.Build();
 

@@ -1,9 +1,11 @@
-﻿using FluentValidation.Results;
+﻿using FluentResults;
+using ITJournal.Common;
 using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services.Repositories;
-using ITJournal.Services.Validators;
+using ITJournal.Services;
+using ITJournal.Services.Extensions;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITJournal.Controllers
@@ -12,73 +14,70 @@ namespace ITJournal.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly DTOValidators _validator;
-
-        public CategoriesController(ICategoryRepository categoryRepository, DTOValidators validator)
+        private readonly CategoryService _categoryService;
+        public CategoriesController(CategoryService categoryService)
         {
-            _categoryRepository = categoryRepository;
-            _validator = validator;
+            _categoryService = categoryService;
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetCategories([FromQuery]int? id = null, string? name = null)
+        public async Task<ActionResult> GetCategories([FromQuery]CategoryFilter categoryFilter)
         {
-            if (id.HasValue || string.IsNullOrEmpty(name) == false)
-            {
-                Category? category = (await _categoryRepository.GetCategoriesAsync(id, name)).FirstOrDefault();
-
-                if (category == null)
-                {
-                    return NotFound();
-                }
-
-                CategoryResponse response = category.Adapt<CategoryResponse>();
-
-                return Ok(response);
-            }
-
-            IEnumerable<Category> cats = await _categoryRepository.GetCategoriesAsync(id, name);
-
-            return Ok(cats.Select(cat => cat.Adapt<CategoryResponse>()));
+            return Ok(await _categoryService.GetMappingItems<CategoryResponse>(categoryFilter));
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<CategoryResponse>> CreateCategory(CategoryRequest categoryDTO)
         {
-            ValidationResult validationResult = await _validator.ValidateAsync(categoryDTO);
-
-            if (validationResult.IsValid == false)
+            CategoryServiceCreateData data = new CategoryServiceCreateData()
             {
-                return BadRequest(validationResult.ToDictionary());
+                UserId = this.GetUserId()!.Value,
+                Name = categoryDTO.Name,
+            };
+
+            Result<Category> result = await _categoryService.CreateCategory(data);
+
+            if (result.IsFailed)
+            {
+                return BadRequest(result.ToDictionary());
             }
 
-            Category category = await _categoryRepository.CreateCategory(categoryDTO.Name);
-
-            return CreatedAtAction(nameof(GetCategories), new {category.Id}, category.Adapt<CategoryResponse>());
+            return Ok(result.Value.Adapt<CategoryResponse>());
         }
 
+        [Authorize]
         [HttpPatch("{id}")]
         public async Task<ActionResult<CategoryResponse>> UpdateCategory(int id, [FromBody] CategoryRequest request)
         {
-            Category? category = await _categoryRepository.UpdateCategory(id, request.Name);
-
-            if (category == null) 
+            Result<Category> result = await _categoryService.UpdateCategory(new CategoryServiceUpdateData
             {
-                return NotFound(); 
+                UserId = this.GetUserId()!.Value,
+                CategoryId = id,
+                Name = request.Name,
+            });
+
+            if (result.IsFailed)
+            {
+                return BadRequest(result.ToDictionary());
             }
 
-            return Ok(category.Adapt<CategoryResponse>());
+            return Ok(result.Value.Adapt<CategoryResponse>());
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            bool deleteResult = await _categoryRepository.DeleteCategory(id);
-
-            if (deleteResult == false)
+            Result<bool> result = await _categoryService.DeleteCategory(new CategoryServiceDeleteData
             {
-                return NotFound();
+                CategoryId = id,
+                UserId = this.GetUserId()!.Value
+            });
+
+            if (result.IsFailed)
+            {
+                return BadRequest(result.ToDictionary());
             }
 
             return NoContent();

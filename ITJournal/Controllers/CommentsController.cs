@@ -1,12 +1,10 @@
 ﻿using FluentValidation.Results;
 using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services.Extensions;
 using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Controllers
 {

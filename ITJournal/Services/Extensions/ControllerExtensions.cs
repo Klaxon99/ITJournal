@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentResults;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace ITJournal.Services.Extensions
@@ -10,6 +11,16 @@ namespace ITJournal.Services.Extensions
             return controller.User.Identity?.IsAuthenticated == true
                 ? int.Parse(controller.User.FindFirstValue(ClaimTypes.NameIdentifier)!)
                 : null;
+        }
+
+        public static IActionResult CheckRequest<T>(this ControllerBase controller, Result<T> operationResult)
+        {
+            if (operationResult.IsFailed)
+            {
+                return controller.BadRequest(operationResult.ToDictionary());
+            }
+
+            return controller.Ok(operationResult.Value);
         }
     }
 }

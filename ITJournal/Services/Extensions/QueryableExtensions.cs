@@ -1,6 +1,6 @@
-﻿using ITJournal.DTO;
+﻿using ITJournal.Common;
+using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -13,12 +13,9 @@ namespace ITJournal.Services.Extensions
             return condition ? query.Where(expression) : query;
         }
 
-        public static IQueryable<T> Paginate<T>(this IQueryable<T> query, int? skip = null, int? take = null)
+        public static IQueryable<T> Paginate<T>(this IQueryable<T> query, RequestFilterData filter)
         {
-            query = skip != null ? query.Skip(skip.Value) : query;
-            query = take != null ? query.Take(take.Value) : query;
-
-            return query;
+            return query.Skip(filter.Skip).Take(filter.Limit);
         }
 
         public static IQueryable<User> ApplyFilter(this IQueryable<User> query, UsersFilter usersFilter)
@@ -27,7 +24,7 @@ namespace ITJournal.Services.Extensions
                 .WhereIf(usersFilter.Id != null, user => user.Id == usersFilter.Id)
                 .WhereIf(usersFilter.Username != null, user => user.Username == usersFilter.Username)
                 .WhereIf(usersFilter.Email != null, user => user.Email == usersFilter.Email)
-                .Paginate(skip: usersFilter.Skip, take: usersFilter.Limit);
+                .Paginate(usersFilter);
         }
 
         public static IQueryable<Article> ApplyFilter(this IQueryable<Article> query, ArticlesFilterRequest filter)
@@ -49,6 +46,14 @@ namespace ITJournal.Services.Extensions
                 .WhereIf(filter.AticleId != null, comment => comment.ArticleId == filter.AticleId)
                 .WhereIf(filter.ParentId != null, comment => comment.ParentId == filter.ParentId)
                 .WhereIf(filter.AuthorId != null, comment => comment.AuthorId == filter.AuthorId);
+        }
+
+        public static IQueryable<Category> ApplyFilter(this IQueryable<Category> query, CategoryFilter filter)
+        {
+            return query
+                .WhereIf(filter.Id != null, category => category.Id == filter.Id)
+                .WhereIf(filter.Name != null, category => category.Name == filter.Name)
+                .Paginate(filter);
         }
     }
 }
