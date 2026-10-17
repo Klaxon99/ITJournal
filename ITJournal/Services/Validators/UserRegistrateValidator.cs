@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using ITJournal.Models;
 using ITJournal.Services.UserService;
-using Microsoft.EntityFrameworkCore;
 
 namespace ITJournal.Services.Validators
 {

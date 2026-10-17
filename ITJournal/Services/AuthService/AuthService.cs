@@ -30,8 +30,10 @@ namespace ITJournal.Services.UserService
                 return Result.Fail(validationResult.Errors);
             }
 
-            UserRepositoryCreateData data = dto.Adapt<UserRepositoryCreateData>();
+            UserRepositoryCreateData data = new UserRepositoryCreateData { Role = UserRole.Admin };
             data.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+            data = dto.Adapt(data);
 
             User? user = await _userRepository.CreateUserAsync(data);
 

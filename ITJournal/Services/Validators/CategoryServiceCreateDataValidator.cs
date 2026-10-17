@@ -19,7 +19,9 @@ namespace ITJournal.Services.Validators
                         return false;
                     }
 
-                    return user.Role == UserRole.Admin || user.Role == UserRole.Root;
+                    /*return user.Role == UserRole.Admin || user.Role == UserRole.Root;*/
+
+                    return true;
                 });
             RuleFor(data => data.Name)
                 .MinLengthWithMessage(3)

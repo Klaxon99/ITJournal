@@ -15,6 +15,31 @@ namespace ITJournal.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            SetUser(modelBuilder);
+            SetArticle(modelBuilder);
+            SetComment(modelBuilder);
+            SetCategory(modelBuilder);
+
+            modelBuilder.Entity<Like>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.ArticleId).IsRequired();
+                entity.Property(x => x.AuthorId).IsRequired();
+
+                entity.HasOne(like => like.Article)
+                .WithMany(article => article.Likes)
+                .HasForeignKey(like => like.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(like => like.User)
+                .WithMany()
+                .HasForeignKey(like => like.AuthorId)
+                .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
+
+        private void SetUser(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(x => x.Id);
@@ -25,7 +50,10 @@ namespace ITJournal.Models
                 entity.Property(user => user.Email).IsRequired().HasMaxLength(256);
                 entity.HasIndex(user => user.Email);
             });
+        }
 
+        private void SetArticle(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Article>(entity =>
             {
                 entity.HasKey(x => x.Id);
@@ -41,7 +69,10 @@ namespace ITJournal.Models
                 .HasForeignKey(article => article.AuthorId)
                 .OnDelete(DeleteBehavior.Restrict);
             });
+        }
 
+        private void SetComment(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Comment>(entity =>
             {
                 entity.HasKey(entity => entity.Id);
@@ -62,7 +93,10 @@ namespace ITJournal.Models
                     .HasForeignKey(comment => comment.ParentId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+        }
 
+        private void SetCategory(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasKey(entity => entity.Id);

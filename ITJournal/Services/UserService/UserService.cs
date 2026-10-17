@@ -33,6 +33,8 @@ namespace ITJournal.Services.UserService
                 return Result.Fail(result.Errors);
             }
 
+            await _userRepository.DeleteUser(data.UserDeleteId);
+
             return true;
         }
 

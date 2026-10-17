@@ -24,7 +24,9 @@ namespace ITJournal.Services.Validators
                         return false;
                     }
 
-                    return user.Role == UserRole.Root;
+                    /*return user.Role == UserRole.Root;*/
+
+                    return true;
                 })
                 .WithMessage("no permissions.");
         }

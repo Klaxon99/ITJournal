@@ -11,5 +11,6 @@
         public User Author { get; set; } = null;
         public List<Category> Categories { get; set; } = null;
         public List<Comment> Comments { get; set; } = null;
+        public List<Like> Likes { get; set; } = null;
     }
 }

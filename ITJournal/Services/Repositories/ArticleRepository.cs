@@ -47,7 +47,7 @@ namespace ITJournal.Services.Repositories
                 AuthorId = createData.AuthorId,
                 Categories = categories,
                 Author = user,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
              
             _dbContext.Articles.Add(article);
