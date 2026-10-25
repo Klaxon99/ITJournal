@@ -51,13 +51,18 @@ namespace ITJournal.Services.Repositories
 
         public async Task<bool> DeleteUser(int id)
         {
-            User? user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
+            await _dbContext.Articles
+                .Where(article => article.AuthorId == id)
+                .ExecuteDeleteAsync();
+
+            User? user = await _dbContext.Users
+                .FirstOrDefaultAsync(user => user.Id == id);
 
             if (user == null)
             {
                 return false;
             }
-
+             
             _dbContext.Users.Remove(user);
 
             await _dbContext.SaveChangesAsync();

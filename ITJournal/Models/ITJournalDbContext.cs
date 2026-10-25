@@ -19,7 +19,11 @@ namespace ITJournal.Models
             SetArticle(modelBuilder);
             SetComment(modelBuilder);
             SetCategory(modelBuilder);
+            SetLikes(modelBuilder);
+        }
 
+        private void SetLikes(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Like>(entity =>
             {
                 entity.HasKey(x => x.Id);
@@ -34,7 +38,7 @@ namespace ITJournal.Models
                 entity.HasOne(like => like.User)
                 .WithMany()
                 .HasForeignKey(like => like.AuthorId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.ClientCascade);
             });
         }
 
@@ -67,7 +71,7 @@ namespace ITJournal.Models
                 entity.HasOne(article => article.Author)
                 .WithMany(author => author.Articles)
                 .HasForeignKey(article => article.AuthorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
             });
         }
 
@@ -81,7 +85,7 @@ namespace ITJournal.Models
                 entity.HasOne(comment => comment.Author)
                     .WithMany(author => author.Comments)
                     .HasForeignKey(comment => comment.AuthorId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.ClientCascade);
 
                 entity.HasOne(comment => comment.Article)
                     .WithMany(article => article.Comments)
