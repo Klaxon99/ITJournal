@@ -1,9 +1,10 @@
-﻿using FluentValidation.Results;
+﻿using FluentResults;
 using ITJournal.DTO;
 using ITJournal.Models;
-using ITJournal.Services.Repositories;
-using ITJournal.Services.Validators;
+using ITJournal.Services;
+using ITJournal.Services.Extensions;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITJournal.Controllers
@@ -12,54 +13,71 @@ namespace ITJournal.Controllers
     [ApiController]
     public class CommentsController : ControllerBase
     {
-        private readonly DTOValidators _validator;
-        private readonly ICommentRepository _commentRepository;
-        public CommentsController(ICommentRepository commentRepository, DTOValidators validator)
+
+        private readonly CommentService _commentService;
+
+        public CommentsController(CommentService commentService)
         {
-            _commentRepository = commentRepository;
-            _validator = validator;
+            _commentService = commentService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CommentResponse>>> GetComments([FromQuery] CommentsFilterRequest filter)
         {
-            return Ok(await _commentRepository.GetMappingComments<CommentResponse>(filter));
+            return Ok(await _commentService.GetMappingComments<CommentResponse>(filter));
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateComment(CommentRequest commentDTO)
         {
-            ValidationResult validationResult = await _validator.ValidateAsync(commentDTO);
-
-            if (validationResult.IsValid == false)
+            CommentServiceCreateData createData = new CommentServiceCreateData
             {
-                return BadRequest(validationResult.ToDictionary());
+                AuthorId = this.GetUserId()!.Value
+            };
+
+            commentDTO.Adapt(createData);
+
+            Result<Comment> result = await _commentService.CreateComment(createData);
+
+            if (result.IsFailed == false)
+            {
+                return BadRequest(result.ToDictionary());
             }
 
-            Comment comment = await _commentRepository.CreateComment(commentDTO.Adapt<CommentCreateData>());
-
-            return CreatedAtAction(nameof(GetComments), new { comment.Id }, comment.Adapt<CommentResponse>());
+            return CreatedAtAction(nameof(GetComments), new { result.Value.Id }, result.Value.Adapt<CommentResponse>());
         }
 
+        [Authorize]
         [HttpPatch("{id}")]
         public async Task<ActionResult<CommentResponse>> UpdateComment(int id, [FromBody] CommentUpdateRequest request)
         {
-            Comment? comment = await _commentRepository.UpdateComment(id, request.Text);
-
-            if (comment == null)
+            Result<Comment> result = await _commentService.UpdateComment(new CommentServiceUpdateData
             {
-                return NotFound();
+                AuthorId = this.GetUserId().Value!,
+                CommentId = id,
+                Text = request.Text
+            });
+
+            if (result.IsFailed == true)
+            {
+                return BadRequest(result.ToDictionary());
             }
 
-            return Ok(comment.Adapt<CommentResponse>());
+            return Ok(result.Value.Adapt<CommentResponse>());
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
-            bool idDeleted = await _commentRepository.DeleteComment(id);
+            Result<bool> result = await _commentService.DeleteComment(new CommentServiceDeleteData
+            {
+                CommentId = id,
+                UserId = this.GetUserId()!.Value
+            });
 
-            if (idDeleted == false)
+            if (result.IsFailed)
             {
                 return NotFound();
             }

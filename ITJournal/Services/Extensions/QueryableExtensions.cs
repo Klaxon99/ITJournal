@@ -1,6 +1,7 @@
 ﻿using ITJournal.Common;
 using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournal.Services.LikesService;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -54,6 +55,14 @@ namespace ITJournal.Services.Extensions
                 .WhereIf(filter.Id != null, category => category.Id == filter.Id)
                 .WhereIf(filter.Name != null, category => category.Name == filter.Name)
                 .Paginate(filter);
+        }
+
+        public static IQueryable<Like> ApplyFilter(this IQueryable<Like> query, LikesFilter filter)
+        {
+            return query
+                .WhereIf(filter.LikeId != null, like => like.LikeId == filter.LikeId)
+                .WhereIf(filter.UserId != null, like => like.UserId == filter.UserId)
+                .WhereIf(filter.ArticleId != null, like => like.ArticleId == filter.ArticleId);
         }
     }
 }

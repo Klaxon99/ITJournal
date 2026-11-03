@@ -12,6 +12,7 @@ namespace ITJournal.Models
         public DbSet<Article> Articles => Set<Article>();
         public DbSet<Comment> Comments => Set<Comment>();
         public DbSet<Category> Categories => Set<Category>();
+        public DbSet<Like> Likes => Set<Like>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,9 +27,9 @@ namespace ITJournal.Models
         {
             modelBuilder.Entity<Like>(entity =>
             {
-                entity.HasKey(x => x.Id);
+                entity.HasKey(x => x.LikeId);
                 entity.Property(x => x.ArticleId).IsRequired();
-                entity.Property(x => x.AuthorId).IsRequired();
+                entity.Property(x => x.UserId).IsRequired();
 
                 entity.HasOne(like => like.Article)
                 .WithMany(article => article.Likes)
@@ -37,7 +38,7 @@ namespace ITJournal.Models
 
                 entity.HasOne(like => like.User)
                 .WithMany()
-                .HasForeignKey(like => like.AuthorId)
+                .HasForeignKey(like => like.UserId)
                 .OnDelete(DeleteBehavior.ClientCascade);
             });
         }
@@ -95,7 +96,7 @@ namespace ITJournal.Models
                 entity.HasOne(comment => comment.ParentComment)
                     .WithMany(comment => comment.Replies)
                     .HasForeignKey(comment => comment.ParentId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
 

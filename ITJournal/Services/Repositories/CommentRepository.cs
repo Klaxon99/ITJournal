@@ -36,7 +36,7 @@ namespace ITJournal.Services.Repositories
             Comment comment = new Comment
             {
                 Text = data.Text,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 ArticleId = data.ArticleId,
                 ParentId = data.ParentId,
                 AuthorId = data.AuthorId
@@ -49,7 +49,7 @@ namespace ITJournal.Services.Repositories
             return comment;
         }
 
-        public async Task<Comment?> UpdateComment(int commentId, string text)
+        public async Task<Comment> UpdateComment(int commentId, string text)
         {
             Comment? comment = await _dbContext.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
 
@@ -59,7 +59,7 @@ namespace ITJournal.Services.Repositories
             }
 
             comment.Text = text;
-            comment.UpdatedAt = DateTime.Now;
+            comment.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 

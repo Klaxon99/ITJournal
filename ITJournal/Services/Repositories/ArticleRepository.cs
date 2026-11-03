@@ -71,7 +71,7 @@ namespace ITJournal.Services.Repositories
 
             article.Title = updateData.Title == null ? article.Title : updateData.Title;
             article.Content = updateData.Content == null ? article.Content : updateData.Content;
-            article.UpdatedAt = DateTime.Now;
+            article.UpdatedAt = DateTime.UtcNow;
 
             if (updateData.CategoriesIds.Count != 0)
             {

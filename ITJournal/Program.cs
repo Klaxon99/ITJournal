@@ -3,6 +3,7 @@ using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.ArticleSevice;
 using ITJournal.Services.Extensions;
+using ITJournal.Services.LikesService;
 using ITJournal.Services.UserService;
 using ITJournal.Services.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -57,6 +58,7 @@ builder.Services.AddScoped(typeof(CommentService));
 builder.Services.AddScoped(typeof(UserService));
 builder.Services.AddScoped(typeof(ArticleService));
 builder.Services.AddScoped(typeof(CategoryService));
+builder.Services.AddScoped(typeof(LikesService));
 
 builder.Services.AddSingleton<DTOValidators>();
 builder.Services.AddDbContext<ITJournalDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

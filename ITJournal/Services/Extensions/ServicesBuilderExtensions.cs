@@ -10,6 +10,7 @@ namespace ITJournal.Services.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IArticleRepository, ArticleRepository>();
             services.AddScoped<ICommentRepository, CommentRepository>();
+            services.AddScoped<ILikesRepository, LikesRepository>();
 
             return services;
         }
