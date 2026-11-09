@@ -1,8 +1,8 @@
 ﻿using FluentResults;
-using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services.UserService;
 using ITJournal.Services.Validators;
+using ITJournalDTOs.DTO;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 

@@ -28,4 +28,8 @@
     <Folder Include="Services\CommentService\Data\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ITJournalDTOs\ITJournalDTOs.csproj" />
+  </ItemGroup>
+
 </Project>

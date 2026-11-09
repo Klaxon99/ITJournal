@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
-using ITJournal.DTO;
 using ITJournal.Models;
+using ITJournalDTOs.DTO;
 
 namespace ITJournal.Services.Validators
 {

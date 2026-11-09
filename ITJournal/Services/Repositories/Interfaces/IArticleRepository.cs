@@ -1,5 +1,5 @@
-﻿using ITJournal.DTO;
-using ITJournal.Models;
+﻿using ITJournal.Models;
+using ITJournalDTOs.DTO;
 
 namespace ITJournal.Services.Repositories
 {

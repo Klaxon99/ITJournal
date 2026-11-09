@@ -1,7 +1,5 @@
-﻿using ITJournal.Common;
-using ITJournal.DTO;
-using ITJournal.Models;
-using ITJournal.Services.LikesService;
+﻿using ITJournal.Models;
+using ITJournalDTOs.DTO;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 

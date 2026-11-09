@@ -14,6 +14,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+string blazorCorsPolicy = "AllowBlazorClient";
+
 var JwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.UTF8.GetBytes(JwtSettings["Key"]);
 // Add services to the container.
@@ -63,6 +65,16 @@ builder.Services.AddScoped(typeof(LikesService));
 builder.Services.AddSingleton<DTOValidators>();
 builder.Services.AddDbContext<ITJournalDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddRepositories();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(blazorCorsPolicy, policy =>
+    {
+        policy.WithOrigins("https://localhost:7294");
+        policy.AllowAnyMethod();
+        policy.AllowAnyHeader();
+        policy.AllowCredentials();
+    });
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -71,6 +83,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseCors(blazorCorsPolicy);
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

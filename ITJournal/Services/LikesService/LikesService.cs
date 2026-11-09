@@ -3,6 +3,7 @@ using ITJournal.Models;
 using ITJournal.Services.Extensions;
 using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
+using ITJournalDTOs.DTO;
 
 namespace ITJournal.Services.LikesService
 {
@@ -45,25 +46,5 @@ namespace ITJournal.Services.LikesService
 
             return result;
         }
-    }
-
-    public class LikesFilter
-    {
-        public int? LikeId { get; set; }
-        public int? ArticleId { get; set; }
-        public int? UserId { get; set; }
-    }
-
-    public class LikeServiceCreateData
-    {
-        public int UserId { get; set; }
-        public int ArticleId { get; set; }
-    }
-
-    public class LikesServiceDeleteData
-    {
-        public int ArticleId { get; set; }
-        public int UserId { get; set; }
-        public int LikeId { get; set; }
     }
 }

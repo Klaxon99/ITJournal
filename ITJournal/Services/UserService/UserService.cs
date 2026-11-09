@@ -1,9 +1,9 @@
 ﻿using FluentResults;
-using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services.Extensions;
 using ITJournal.Services.Repositories;
 using ITJournal.Services.Validators;
+using ITJournalDTOs.DTO;
 using Mapster;
 
 namespace ITJournal.Services.UserService

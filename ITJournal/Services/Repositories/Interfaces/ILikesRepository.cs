@@ -1,6 +1,6 @@
-﻿
-using ITJournal.Models;
+﻿using ITJournal.Models;
 using ITJournal.Services.LikesService;
+using ITJournalDTOs.DTO;
 
 namespace ITJournal.Services.Repositories
 {

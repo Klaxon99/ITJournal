@@ -1,6 +1,7 @@
 ﻿using ITJournal.Models;
 using ITJournal.Services.Extensions;
 using ITJournal.Services.LikesService;
+using ITJournalDTOs.DTO;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 

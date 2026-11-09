@@ -1,6 +1,6 @@
-﻿using ITJournal.DTO;
-using ITJournal.Models;
+﻿using ITJournal.Models;
 using ITJournal.Services.Extensions;
+using ITJournalDTOs.DTO;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 

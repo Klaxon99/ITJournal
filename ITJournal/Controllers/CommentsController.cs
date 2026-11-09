@@ -1,8 +1,8 @@
 ﻿using FluentResults;
-using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services;
 using ITJournal.Services.Extensions;
+using ITJournalDTOs.DTO;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,7 +54,7 @@ namespace ITJournal.Controllers
         {
             Result<Comment> result = await _commentService.UpdateComment(new CommentServiceUpdateData
             {
-                AuthorId = this.GetUserId().Value!,
+                AuthorId = this.GetUserId()!.Value,
                 CommentId = id,
                 Text = request.Text
             });

@@ -1,8 +1,8 @@
 ﻿using FluentResults;
-using ITJournal.DTO;
 using ITJournal.Models;
 using ITJournal.Services.Extensions;
 using ITJournal.Services.LikesService;
+using ITJournalDTOs.DTO;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
